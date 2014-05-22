@@ -1,0 +1,13 @@
+name := "metabg"
+
+version := "1.0-SNAPSHOT"
+
+libraryDependencies ++= Seq(
+  javaJdbc,
+  javaEbean,
+  cache,
+  "com.google.guava" % "guava" % "14.0",
+  "org.json" % "json" % "20140107"
+)     
+
+play.Project.playJavaSettings

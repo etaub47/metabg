@@ -1,0 +1,11 @@
+# Routes
+
+GET     /metabg                     controllers.Application.games()
+GET     /metabg/:game               controllers.Application.tables(game: String)
+GET     /metabg/:game/:table        controllers.Application.seats(game: String, table: String)
+POST    /metabg/:game/:table        controllers.Application.createTable(game: String, table: String, numPlayers: Integer ?= 2)
+DELETE  /metabg/:game/:table        controllers.Application.removeTable(game: String, table: String)
+GET     /metabg/:game/:table/:seat  controllers.Application.playGame(game: String, table: String, seat: Integer, player: String ?= "default")
+
+GET     /resources/js/routes        controllers.Application.jsRoutes()
+GET     /resources/*file            controllers.Assets.at(path="/public", file)

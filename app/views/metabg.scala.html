@@ -1,0 +1,38 @@
+@(games: List[models.metabg.Game])
+@main("MetaBG Engine") {
+
+  <h2>Catalog</h2>
+  
+  <div id="gameDiv">
+    <label for="game">Select a Game:</label>
+    <select id="game">
+      <option value="Select">None Selected</option>
+      @for(game <- games) {
+        <option value="@game.getName()">@game.getName()</option>
+      }
+    </select>
+  </div>
+
+  <div id="tableDiv">
+    <label for="table">Select a Table:</label>
+    <select id="table">
+      <option value="Select">None Selected</option>
+    </select>
+  </div>
+  
+  <div id="createTableDiv">
+    <label for="createTable">Table Name:</label>
+    <input id="createTable" type="text" name="createTable" size="20" maxlength="20" /><br />
+    <label for="numPlayers">Number of Players:</label>
+    <select id="numPlayers">
+    </select>
+    <input id="create" type="button" value="Create" />
+  </div>
+
+  <div id="seatDiv">
+    <label for="seat">Select a Seat</label>
+    <select id="seat">
+    </select>
+  </div>
+  
+}
