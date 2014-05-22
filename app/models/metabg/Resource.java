@@ -2,9 +2,11 @@ package models.metabg;
 
 import java.util.Collections;
 import java.util.List;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import play.libs.Json;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Optional;
 
 public class Resource
@@ -44,14 +46,14 @@ public class Resource
     
     public String getName () { return name; }
     
-    public JSONObject getJson () throws JSONException {
-        JSONObject resource = new JSONObject();
-        resource.put("imageFront", imageFront);
-        if (imageBack.isPresent()) resource.put("imageBack", imageBack.get());
-        JSONArray regions = new JSONArray();
+    public JsonNode getJson () {
+        ObjectNode resourceJson = Json.newObject();
+        resourceJson.put("imageFront", imageFront);
+        if (imageBack.isPresent()) resourceJson.put("imageBack", imageBack.get());
+        ArrayNode regionsJson = JsonNodeFactory.instance.arrayNode();
         for (ClickableRegion region : clickableRegions)
-            regions.put(region.getJson());
-        resource.put("clickableRegions", clickableRegions);
-        return resource;
+            regionsJson.add(region.getJson());
+        resourceJson.put("clickableRegions", regionsJson);
+        return resourceJson;
     }
 }

@@ -4,7 +4,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-import org.json.JSONException;
 import play.libs.Json;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -35,7 +34,7 @@ public class Table
     public Seat[] getSeats () { return seats; }
     public Status getStatus () { return status; }
     
-    public JsonNode getJson () throws JSONException {
+    public JsonNode getJson () {
         ObjectNode table = Json.newObject();
         table.put("name", name);
         table.put("created", new SimpleDateFormat("MMM dd, yyyy h:mm a").format(createDate));

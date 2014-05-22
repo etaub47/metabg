@@ -1,7 +1,8 @@
 package models.metabg;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import play.libs.Json;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class ClickableRegion
 {
@@ -19,13 +20,13 @@ public class ClickableRegion
         this.value = value;
     }
     
-    public JSONObject getJson () throws JSONException {
-        JSONObject clickableRegion = new JSONObject();
-        clickableRegion.put("relativeX", relativeX);
-        clickableRegion.put("relativeY", relativeY);
-        clickableRegion.put("width", width);
-        clickableRegion.put("height", height);
-        clickableRegion.put("value", value);
-        return clickableRegion;
+    public JsonNode getJson () {
+        ObjectNode clickableRegionJson = Json.newObject();
+        clickableRegionJson.put("relativeX", relativeX);
+        clickableRegionJson.put("relativeY", relativeY);
+        clickableRegionJson.put("width", width);
+        clickableRegionJson.put("height", height);
+        clickableRegionJson.put("value", value);
+        return clickableRegionJson;
     }
 }

@@ -5,12 +5,13 @@ import models.metabg.Game;
 import models.metabg.GameManager;
 import models.metabg.Seat;
 import models.metabg.Table;
-import org.json.JSONException;
 import play.Routes;
+import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class Application extends Controller 
 {
@@ -23,20 +24,19 @@ public class Application extends Controller
     // GET     /metabg/:game               controllers.Application.tables(game: String)
     public static Result tables (String gameName) {
         if (gameName == null) 
-            return badRequest();
+            return badRequest();        
         Game game = GameManager.getInstance().getGame(gameName);
         List<Table> tables = GameManager.getInstance().getTables(gameName);
-        if (game == null || tables == null)
-            return badRequest();
-        try {
-            ArrayNode result = JsonNodeFactory.instance.arrayNode();
-            for (Table table : tables)
-                result.add(table.getJson());
-            return ok(result);
-        }
-        catch (JSONException e) {
-            return internalServerError();
-        }
+        if (game == null || tables == null) 
+            return null;
+        ArrayNode tablesJson = JsonNodeFactory.instance.arrayNode();
+        for (Table table : tables)
+            tablesJson.add(table.getJson());
+        ObjectNode gameJson = Json.newObject();
+        gameJson.put("tables", tablesJson);
+        gameJson.put("minPlayers", game.getMinPlayers());
+        gameJson.put("maxPlayers", game.getMaxPlayers());
+        return ok(gameJson);
     }
     
     // GET     /metabg/:game/:table        controllers.Application.seats(game: String, table: String)
@@ -77,7 +77,7 @@ public class Application extends Controller
     
     // GET     /metabg/:game/:table/:seat  controllers.Application.playGame(game: String, table: String, seat: Integer, player: String ?= "default")
     public static Result playGame (String game, String table, Integer seat, String player) {
-        player = player.equals("default") ? "Player " + seat : player;
+        player = player.equals("default") ? "Player " + (seat + 1) : player;
         return ok(views.html.canvas.render());
     }
     

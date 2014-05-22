@@ -17,6 +17,7 @@ public class GameManager
     private Map<String, Map<String, Table>> tables = new LinkedHashMap<>();
     
     public void registerGame (Game game) {
+        game.init();
         catalog.put(game.getName(), game);
         tables.put(game.getName(), new LinkedHashMap<String, Table>());        
     }

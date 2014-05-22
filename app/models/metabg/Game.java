@@ -2,8 +2,9 @@ package models.metabg;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.json.JSONException;
-import org.json.JSONObject;
+import play.libs.Json;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public abstract class Game
 {
@@ -15,8 +16,8 @@ public abstract class Game
     public abstract int getMinPlayers ();
     public abstract int getMaxPlayers ();
 
-    public JSONObject getResourcesJson () throws JSONException {
-        JSONObject resourcesJson = new JSONObject();
+    public JsonNode getResourcesJson () {
+        ObjectNode resourcesJson = Json.newObject();
         for (Resource resource : resources)
             resourcesJson.put(resource.getName(), resource.getJson());
         return resourcesJson;
