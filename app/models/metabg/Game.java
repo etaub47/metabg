@@ -9,8 +9,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public abstract class Game
 {
     protected List<Resource> resources = new ArrayList<>();
+    protected Sprites sprites = new Sprites(3); // TODO: make configurable by game?
     
-    public void init () { addResources(); }
+    public void init () { addResources(); initSprites(); }
     
     public abstract String getName ();    
     public abstract int getMinPlayers ();
@@ -23,5 +24,10 @@ public abstract class Game
         return resourcesJson;
     }
     
+    public JsonNode getSpritesJson () {
+        return sprites.getJson();        
+    }
+    
     protected abstract void addResources ();
+    protected abstract void initSprites ();
 }

@@ -19,7 +19,8 @@ public class GameManager
     public void registerGame (Game game) {
         game.init();
         catalog.put(game.getName(), game);
-        tables.put(game.getName(), new LinkedHashMap<String, Table>());        
+        tables.put(game.getName(), new LinkedHashMap<String, Table>());
+        addTable(game.getName(), new Table("Testing", 2)); // TODO: remove this
     }
     
     public List<Game> getCatalog () { return new ArrayList<>(catalog.values()); }

@@ -12,17 +12,17 @@ $(function() {
 				success: function(data) {
 					$('#table').empty();
 					$('#table').append($('<option></option>').attr('value', 'Select').text('None Selected'));
-					for (var s = data['minPlayers']; s <= data['maxPlayers']; s++)
+					for (var s = data.minPlayers; s <= data.maxPlayers; s++)
 						$('#numPlayers').append($('<option></option>').attr('value', s).text(s));
-					tables = data['tables'];
+					tables = data.tables;
 					for (var t in tables) {
 						table = tables[t];
-						numSeats = table['seats'].length
+						numSeats = table.seats.length
 						availableSeats = 0;
-						for (var s in table['seats'])
-							if (table['seats'][s] == 'Empty') availableSeats++;
-						tableDesc = table['name'] + " - " + table['created'] + " - " + availableSeats + "/" + numSeats;                 
-						$('#table').append($('<option></option>').attr('value', table['name']).text(tableDesc));
+						for (var s in table.seats)
+							if (table.seats[s] == 'Empty') availableSeats++;
+						tableDesc = table.name + " - " + table.created + " - " + availableSeats + "/" + numSeats;                 
+						$('#table').append($('<option></option>').attr('value', table.name).text(tableDesc));
 					}
 					$('#table').append($('<option></option>').attr('value', 'Create').text('Create New Table'));
 					$('#tableDiv').css('display', 'block');
@@ -64,15 +64,15 @@ $(function() {
 					success: function(data) {
 						$('#table').empty();
 						$('#table').append($('<option></option>').attr('value', 'Select').text('None Selected'));
-						tables = data['tables'];
+						tables = data.tables;
 						for (var t in tables) {
 							table = tables[t];
-							numSeats = table['seats'].length
+							numSeats = table.seats.length
 							availableSeats = 0;
-							for (var s in table['seats'])
-								if (table['seats'][s] == 'Empty') availableSeats++;
-							tableDesc = table['name'] + " - " + table['created'] + " - " + availableSeats + "/" + numSeats;                 
-							$('#table').append($('<option></option>').attr('value', table['name']).text(tableDesc));
+							for (var s in table.seats)
+								if (table.seats[s] == 'Empty') availableSeats++;
+							tableDesc = table.name + " - " + table.created + " - " + availableSeats + "/" + numSeats;                 
+							$('#table').append($('<option></option>').attr('value', table.name).text(tableDesc));
 						}
 						$('#table').append($('<option></option>').attr('value', 'Create').text('Create New Table'));
 						$('#tableDiv').css('display', 'block');

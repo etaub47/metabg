@@ -1,3 +1,5 @@
 #tableDiv { display: none; }
 #createTableDiv { display: none; }
 #seatDiv { display: none; }
+
+.offscreen { display: none; }

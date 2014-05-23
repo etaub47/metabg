@@ -76,9 +76,16 @@ public class Application extends Controller
     }
     
     // GET     /metabg/:game/:table/:seat  controllers.Application.playGame(game: String, table: String, seat: Integer, player: String ?= "default")
-    public static Result playGame (String game, String table, Integer seat, String player) {
+    public static Result playGame (String gameName, String tableName, Integer seat, String player) {
         player = player.equals("default") ? "Player " + (seat + 1) : player;
-        return ok(views.html.canvas.render());
+        Game game = GameManager.getInstance().getGame(gameName);
+        Table table = GameManager.getInstance().getTable(gameName, tableName);
+        if (game == null || table == null)
+            return badRequest();
+        ObjectNode result = Json.newObject();
+        result.put("resources", game.getResourcesJson());
+        result.put("sprites", game.getSpritesJson());
+        return ok(views.html.canvas.render(result.toString()));
     }
     
     // GET     /resources/js/routes        controllers.Application.jsRoutes()
