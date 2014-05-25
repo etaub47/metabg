@@ -35,16 +35,12 @@ public class Sprites
         levels.get(level).remove(id);
     }
     
-    // TODO: left off here; too many levels? context.sprites[0][0].board
     public JsonNode getJson () {
         ArrayNode spritesJson = JsonNodeFactory.instance.arrayNode();
         for (int l = 0; l < numLevels; l++) {
-            ArrayNode levelJson = JsonNodeFactory.instance.arrayNode();
-            for (Map.Entry<String, Sprite> sprite : levels.get(l).entrySet()) {
-                ObjectNode spriteJson = Json.newObject();
-                spriteJson.put(sprite.getKey(), sprite.getValue().getJson());
-                levelJson.add(spriteJson);                
-            }
+            ObjectNode levelJson = Json.newObject();
+            for (Map.Entry<String, Sprite> sprite : levels.get(l).entrySet())
+                levelJson.put(sprite.getKey(), sprite.getValue().getJson());
             spritesJson.add(levelJson);            
         }
         return spritesJson;
