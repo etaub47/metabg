@@ -33,12 +33,9 @@ public class Checkers extends Game
     @Override
     protected void initSprites () {        
         SpriteUtils utils = SpriteUtils.getInstance();
-        Sprite boardSprite = new Sprite("checkerBoard", 50, 50,
-            0, Side.Front, Orientation.Normal, null); 
-        /*
+        //Sprite boardSprite = new Sprite("checkerBoard", 50, 50, 0, Side.Front, Orientation.Normal, null); 
         Sprite boardSprite = new Sprite("checkerBoard", utils.centerSpriteOnTableX(940), utils.centerSpriteOnTableY(948),
             0, Side.Front, Orientation.Normal, null);
-        */ 
         sprites.addSprite(0, Sprites.BOARD, boardSprite);        
     }
 }
