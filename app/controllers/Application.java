@@ -5,23 +5,27 @@ import models.metabg.Game;
 import models.metabg.GameManager;
 import models.metabg.Seat;
 import models.metabg.Table;
+import play.Logger;
 import play.Routes;
+import play.libs.F.Callback;
+import play.libs.F.Callback0;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
+import play.mvc.WebSocket;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class Application extends Controller 
 {
-    // GET     /metabg                     controllers.Application.games()
+    // GET     /metabg
     public static Result games () {
         List<Game> games = GameManager.getInstance().getCatalog();
         return ok(views.html.metabg.render(games));
     }
 
-    // GET     /metabg/:game               controllers.Application.tables(game: String)
+    // GET     /metabg/:game
     public static Result tables (String gameName) {
         if (gameName == null) 
             return badRequest();        
@@ -39,7 +43,7 @@ public class Application extends Controller
         return ok(gameJson);
     }
     
-    // GET     /metabg/:game/:table        controllers.Application.seats(game: String, table: String)
+    // GET     /metabg/:game/:table
     public static Result seats (String gameName, String tableName) {
         Table table = GameManager.getInstance().getTable(gameName, tableName);
         if (table == null) 
@@ -51,7 +55,7 @@ public class Application extends Controller
         return ok(result);
     }
     
-    // POST    /metabg/:game/:table        controllers.Application.createTable(game: String, table: String, numPlayers: Integer ?= 2)    
+    // POST    /metabg/:game/:table    
     public static Result createTable (String gameName, String tableName, Integer numPlayers) {
         if (gameName == null || tableName == null || numPlayers == null)
             return badRequest();
@@ -63,7 +67,7 @@ public class Application extends Controller
         return success ? ok() : status(CONFLICT);
     }
     
-    // DELETE  /metabg/:game/:table        controllers.Application.removeTable(game: String, table: String)
+    // DELETE  /metabg/:game/:table
     public static Result removeTable (String gameName, String tableName) {
         if (gameName == null || tableName == null)
             return badRequest();
@@ -75,7 +79,7 @@ public class Application extends Controller
         return ok();        
     }
     
-    // GET     /metabg/:game/:table/:seat  controllers.Application.playGame(game: String, table: String, seat: Integer, player: String ?= "default")
+    // GET     /metabg/:game/:table/:seat
     public static Result playGame (String gameName, String tableName, Integer seat, String player) {
         player = player.equals("default") ? "Player " + (seat + 1) : player;
         Game game = GameManager.getInstance().getGame(gameName);
@@ -88,40 +92,30 @@ public class Application extends Controller
         return ok(views.html.canvas.render(result.toString()));
     }
     
-    // GET     /resources/js/routes        controllers.Application.jsRoutes()
-    public static Result jsRoutes() {
+    // GET     /resources/js/routes
+    public static Result jsRoutes () {
         response().setContentType("text/javascript");
         return ok(Routes.javascriptRouter("jsRoutes", routes.javascript.Application.tables(),
             routes.javascript.Application.seats(), routes.javascript.Application.createTable()));
     }
     
-    /*
-    public static WebSocket<String> index() {
-        return new WebSocket<String>() {
-            
-            public void onReady(WebSocket.In<String> in, WebSocket.Out<String> out) {
-                
+    // GET     /metabg/:game/:table/:seat/connect
+    public static WebSocket<String> connect (String gameName, String tableName, Integer seat) {
+        return new WebSocket<String>() {            
+            public void onReady(WebSocket.In<String> in, WebSocket.Out<String> out) {                
                 in.onMessage(new Callback<String>() {
                     public void invoke (String event) {
                         Logger.info(event);
                     }                                        
-                });
-                
+                });                
                 in.onClose(new Callback0() {
                     public void invoke () {
                         Logger.info("Disconnected");
                     }
-                });
-                
+                });                
                 out.write("Hello!");
-                
             }
         };
     }
-    
-    public static Result wstest() {
-        return ok(views.html.wstest.render());
-    }
-    */
     
 }
