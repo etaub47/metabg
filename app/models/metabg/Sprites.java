@@ -14,7 +14,7 @@ public class Sprites
 {
     public static final String BOARD = "board";
     public static final String SELECTION = "selection";
-    
+
     private final int numLevels;
     private List<Map<String, Sprite>> levels;
     

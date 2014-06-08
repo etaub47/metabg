@@ -9,13 +9,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public abstract class Game
 {
     protected List<Resource> resources = new ArrayList<>();
-    protected Sprites sprites = new Sprites(3); // TODO: make configurable by game?
     
-    public void init () { addResources(); initSprites(); }
+    public void init () { addResources(); }
     
     public abstract String getName ();    
     public abstract int getMinPlayers ();
     public abstract int getMaxPlayers ();
+    public abstract GameState createGameState ();
 
     public JsonNode getResourcesJson () {
         ObjectNode resourcesJson = Json.newObject();
@@ -23,11 +23,6 @@ public abstract class Game
             resourcesJson.put(resource.getName(), resource.getJson());
         return resourcesJson;
     }
-    
-    public JsonNode getSpritesJson () {
-        return sprites.getJson();        
-    }
-    
+
     protected abstract void addResources ();
-    protected abstract void initSprites ();
 }

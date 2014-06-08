@@ -5,10 +5,7 @@ import models.metabg.Game;
 import models.metabg.GameManager;
 import models.metabg.Seat;
 import models.metabg.Table;
-import play.Logger;
 import play.Routes;
-import play.libs.F.Callback;
-import play.libs.F.Callback0;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -62,7 +59,7 @@ public class Application extends Controller
         Game game = GameManager.getInstance().getGame(gameName);
         if (game == null || numPlayers < game.getMinPlayers() || numPlayers > game.getMaxPlayers())
             return badRequest();            
-        Table table = new Table(tableName, numPlayers);
+        Table table = new Table(tableName, numPlayers, game.createGameState());
         boolean success = GameManager.getInstance().addTable(gameName, table);
         return success ? ok() : status(CONFLICT);
     }
@@ -86,9 +83,9 @@ public class Application extends Controller
         Table table = GameManager.getInstance().getTable(gameName, tableName);
         if (game == null || table == null)
             return badRequest();
+        table.seatPlayer(seat, player);
         ObjectNode result = Json.newObject();
         result.put("resources", game.getResourcesJson());
-        result.put("sprites", game.getSpritesJson());
         return ok(views.html.canvas.render(result.toString()));
     }
     
@@ -100,22 +97,12 @@ public class Application extends Controller
     }
     
     // GET     /metabg/:game/:table/:seat/connect
-    public static WebSocket<String> connect (String gameName, String tableName, Integer seat) {
+    public static WebSocket<String> connect (final String gameName, final String tableName, final Integer seat) {
         return new WebSocket<String>() {            
-            public void onReady(WebSocket.In<String> in, WebSocket.Out<String> out) {                
-                in.onMessage(new Callback<String>() {
-                    public void invoke (String event) {
-                        Logger.info(event);
-                    }                                        
-                });                
-                in.onClose(new Callback0() {
-                    public void invoke () {
-                        Logger.info("Disconnected");
-                    }
-                });                
-                out.write("Hello!");
+            public void onReady(WebSocket.In<String> in, WebSocket.Out<String> out) {
+                Table table = GameManager.getInstance().getTable(gameName, tableName);
+                if (table != null) table.connectPlayer(seat, in, out);
             }
         };
     }
-    
 }
