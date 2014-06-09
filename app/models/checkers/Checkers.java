@@ -17,7 +17,7 @@ public class Checkers extends Game
     @Override public String getName () { return "Checkers"; }
     @Override public int getMinPlayers () { return 2; }
     @Override public int getMaxPlayers () { return 2; }
-    @Override public GameState createGameState () { return new CheckersState(); }
+    @Override public GameState createGameState (int numPlayers) { return new CheckersState(numPlayers); }
     
     @Override
     protected void addResources () {

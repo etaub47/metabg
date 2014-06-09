@@ -20,7 +20,7 @@ public class GameManager
         game.init();
         catalog.put(game.getName(), game);
         tables.put(game.getName(), new LinkedHashMap<String, Table>());
-        addTable(game.getName(), new Table("Testing", 2, new models.checkers.CheckersState())); // TODO: remove this
+        addTable(game.getName(), new Table("Testing", 2, new models.checkers.CheckersState(2))); // TODO: remove this
     }
     
     public List<Game> getCatalog () { return new ArrayList<>(catalog.values()); }

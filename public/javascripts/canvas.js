@@ -4,8 +4,11 @@ $(function() {
 	var wsUri = new String(window.location.href).replace("http", "ws") + "/connect";
 	var range = 4;
 	var zoom = 3;
-	var pan_x = (2560 - window.innerWidth) / 180;//7.5;
-	var pan_y = (1600 - window.innerHeight) / 110;//7.5;
+	var pan_x = (2560 - window.innerWidth) / 180;
+	var pan_y = (1600 - window.innerHeight) / 110;
+	var gameState;
+	
+	// TODO; limit the panning to the edge of the table
 
 	var table = document.getElementById('table');
 	var tableCtx = table.getContext('2d');
@@ -51,23 +54,19 @@ $(function() {
     }
 
     function onClose (evt) {
-    	// TODO
-        writeToScreen("DISCONNECTED");
+        writeToScreen("Disconnected");
     }
 
     function onMessage (evt) {
-        writeToScreen("Got Game State!");
-        websocket.close();
+    	gameState = jQuery.parseJSON(evt.data);
+        loadSprites();
     }
 
     function onError (evt) {
-    	// TODO
-        writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
+        writeToScreen('Error: ' + evt.data);
     }
 
     function doSend (message) {
-    	// TODO
-        writeToScreen("SENT: " + message); 
         websocket.send(message);
     }
 
@@ -81,8 +80,9 @@ $(function() {
     }
       
     function loadSprites () {
+    	spritesLoaded = true;
     	tableCtx.drawImage(window.images["table"], 0, 0);
-    	var sprites = context.sprites;
+    	var sprites = gameState.sprites;
     	for (var l in sprites) {
     		var level = sprites[l];
     		for (var s in level) {

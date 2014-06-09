@@ -11,27 +11,22 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class Table
 {
-    public enum Status { WaitingForPlayers, InProgress }
-    
     private final String name;
     private final Date createDate;
-    private final Seat[] seats; // TODO: LinkedHashMap?
+    private final Seat[] seats;
     
-    private Status status;
     private GameState state;
     
     public Table (String name, int numPlayers, GameState state) {
         this.name = name;
         this.createDate = new Date();
         this.seats = new Seat[numPlayers];
-        this.status = Status.WaitingForPlayers;
         this.state = state; 
     }
     
     public String getName () { return name; }
     public Date getCreateDate () { return createDate; }
     public Seat[] getSeats () { return seats; }
-    public Status getStatus () { return status; }
     
     public JsonNode getJson () {
         ObjectNode table = Json.newObject();
@@ -46,19 +41,21 @@ public class Table
     
     public void seatPlayer (int seatNum, String playerName) {
         seats[seatNum] = new Seat(seatNum, playerName, this);
+        state.addPlayerName(seatNum, playerName);
     }
     
     public synchronized void connectPlayer (int seatNum, WebSocket.In<String> inboundConnection, WebSocket.Out<String> outboundConnection) {
         seats[seatNum].connect(inboundConnection, outboundConnection);
-        boolean foundDisconnected = false;
-        for (Seat seat : seats)
-            if (seat == null || seat.getStatus() == Seat.Status.Disconnected)
-                foundDisconnected = true;
-        if (!foundDisconnected) {
-            status = Status.InProgress;
-            state.init();
+        state.playerConnected(seatNum);
+        if (state.getStatus() != GameState.Status.WaitingForConnections)
             for (Seat seat : seats)
                 seat.sendState(state);
-        }
+    }
+    
+    public synchronized void disconnectPlayer (int seatNum) {
+        state.playerDisconnected(seatNum);
+        if (state.getStatus() != GameState.Status.WaitingForConnections)
+            for (Seat seat : seats)
+                seat.sendState(state);        
     }
 }

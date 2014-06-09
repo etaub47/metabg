@@ -37,7 +37,9 @@ public class Seat
     }
 
     public void closeConnection () {
-        // TODO
+        this.outboundConnection = null;
+        this.status = Status.Disconnected;
+        table.disconnectPlayer(num);
     }
     
     public void sendState (GameState state) {

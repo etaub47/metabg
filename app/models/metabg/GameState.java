@@ -10,39 +10,92 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public abstract class GameState
 {
-    // TODO: do we need a status field to tell us if somebody won?
+    public enum Status { WaitingForConnections, InProgress, WaitingForReconnections, GameOver }
+    
     protected Sprites sprites;
     protected Set<Action> expectedActions;
+    protected Status status;
+    protected String[] playerNames;
+    protected int[] scores;
+    protected Set<Integer> disconnectedPlayers;
     
-    public GameState () {
+    public GameState (int numPlayers) {
         sprites = new Sprites(3); // TODO: make number of layers configurable by game?
         expectedActions = new HashSet<>(); // TODO: limit hash set size to number of players?
+        status = Status.WaitingForConnections;
+        playerNames = new String[numPlayers];
+        scores = new int[numPlayers];
+        disconnectedPlayers = new HashSet<>(numPlayers);
+        for (int p = 0; p < numPlayers; p++)
+            disconnectedPlayers.add(p);
     }
     
-    public void init () {
-        initSprites();
-        initState();
+    public Status getStatus () { return status; }
+    
+    public void playerConnected (int seatNum) {
+        disconnectedPlayers.remove(seatNum);
+        if (disconnectedPlayers.isEmpty()) {
+            if (status == Status.WaitingForConnections)
+                init();
+            if (status == Status.WaitingForConnections || status == Status.WaitingForReconnections)
+                status = Status.InProgress;
+        }
     }
     
-    protected abstract void initSprites ();
-    protected abstract void initState ();
-
+    public void playerDisconnected (int seatNum) {
+        if (status == Status.InProgress)
+            status = Status.WaitingForReconnections;
+        disconnectedPlayers.add(seatNum);
+    }
+    
+    public void addPlayerName (int seatNum, String playerName) { 
+        playerNames[seatNum] = playerName; 
+    }
+    
     public JsonNode getJson () {
         ObjectNode result = Json.newObject();
         result.put("sprites", getSpritesJson());
         result.put("expectedActions", getExpectedActionsJson());
+        result.put("status", status.toString());
+        result.put("playerNames", getPlayerNamesJson());
+        result.put("scores", getScoresJson());
+        result.put("disconnected", getDisconnectedPlayersJson());
         return result;
     }
+
+    protected void init () { initSprites(); initState(); }    
+    protected abstract void initSprites ();
+    protected abstract void initState ();
     
-    protected JsonNode getSpritesJson () {
+    private JsonNode getSpritesJson () {
         return sprites.getJson();        
     }
     
-    protected JsonNode getExpectedActionsJson () {
+    private JsonNode getExpectedActionsJson () {
         ArrayNode expectedActionsJson = JsonNodeFactory.instance.arrayNode();
-        for (Action expectedAction : expectedActions) {
+        for (Action expectedAction : expectedActions)
             expectedActionsJson.add(expectedAction.getJson());            
-        }
         return expectedActionsJson;
+    }
+    
+    private JsonNode getPlayerNamesJson () {
+        ArrayNode playerNamesJson = JsonNodeFactory.instance.arrayNode();
+        for (String playerName : playerNames)
+            playerNamesJson.add(playerName);            
+        return playerNamesJson;        
+    }
+
+    private JsonNode getScoresJson () {
+        ArrayNode scoresJson = JsonNodeFactory.instance.arrayNode();
+        for (int score : scores)
+            scoresJson.add(score);            
+        return scoresJson;             
+    }
+
+    private JsonNode getDisconnectedPlayersJson () {
+        ArrayNode disconnectedPlayersJson = JsonNodeFactory.instance.arrayNode();
+        for (Integer disconnectedPlayer : disconnectedPlayers)
+            disconnectedPlayersJson.add(disconnectedPlayer);
+        return disconnectedPlayersJson;                     
     }
 }

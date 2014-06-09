@@ -23,6 +23,10 @@ public class CheckersState extends GameState
     private Set<Integer> blackCheckers = new HashSet<>();
     private Set<Integer> blackKings = new HashSet<>();
     
+    public CheckersState (int numPlayers) {
+        super(numPlayers);
+    }
+    
     @Override
     protected void initSprites () 
     {

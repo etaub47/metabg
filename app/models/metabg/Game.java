@@ -15,7 +15,7 @@ public abstract class Game
     public abstract String getName ();    
     public abstract int getMinPlayers ();
     public abstract int getMaxPlayers ();
-    public abstract GameState createGameState ();
+    public abstract GameState createGameState (int numPlayers);
 
     public JsonNode getResourcesJson () {
         ObjectNode resourcesJson = Json.newObject();
