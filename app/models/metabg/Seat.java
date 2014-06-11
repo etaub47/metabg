@@ -43,6 +43,7 @@ public class Seat
     }
     
     public void sendState (GameState state) {
-        outboundConnection.write(state.getJson().toString());
+        if (outboundConnection != null && state != null)
+            outboundConnection.write(state.getJson().toString());
     }
 }

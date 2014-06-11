@@ -35,6 +35,8 @@ public class Sprites
         levels.get(level).remove(id);
     }
     
+    // TODO: sort sprites by z-index
+    
     public JsonNode getJson () {
         ArrayNode spritesJson = JsonNodeFactory.instance.arrayNode();
         for (int l = 0; l < numLevels; l++) {
