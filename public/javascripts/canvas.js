@@ -99,7 +99,7 @@ $(function() {
     		if (gameState.disconnected.length == 1)
     			displayMessage("Waiting for " + gameState.playerNames[gameState.disconnected[0]] + " to reconnect...");
     		else    		
-    			displayMessage("Waiting for all players to reconnect..."); // TODO: tell which players
+    			displayMessage("Waiting for all players to reconnect...");
     	}
     	else if (gameState.status == "InProgress") { // TODO: handle GameOver state
     		var foundMe = false;
@@ -184,6 +184,12 @@ $(function() {
     		if (pan_y < range * zoom) pan_y++;
     		if (pan_y > range * zoom) pan_y = range * zoom;
     		redraw();
+    	}
+    	else if (e.which == 13 || e.which == 32) {
+    		alert("SUBMIT");
+    	}
+    	else if (e.which == 27 || e.which == 8 || e.which == 46) {
+    		alert("UNDO");
     	}
     });
 

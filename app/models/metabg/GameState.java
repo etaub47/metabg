@@ -21,7 +21,7 @@ public abstract class GameState
     
     public GameState (int numPlayers) {
         sprites = new Sprites(3); // TODO: make number of layers configurable by game?
-        expectedActions = new HashSet<>(); // TODO: limit hash set size to number of players?
+        expectedActions = new HashSet<>(numPlayers);
         status = Status.WaitingForConnections;
         playerNames = new String[numPlayers];
         scores = new int[numPlayers];

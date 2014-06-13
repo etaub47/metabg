@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import models.metabg.Action;
+import models.metabg.Choice;
 import models.metabg.GameState;
 import models.metabg.Sprite;
 import models.metabg.Sprite.Orientation;
@@ -61,7 +62,7 @@ public class CheckersState extends GameState
         }
         
         // initial expected action: red to select checker
-        expectedActions.add(new Action(1, PROMPT_SELECT_CHECKER, Action.Category.TableClick, 1, null, null));
+        expectedActions.add(new Action(1, PROMPT_SELECT_CHECKER, Choice.Category.TableClick, 1, null, null));
     }
     
     // utility functions to convert logical/board position to graphical/sprite position
