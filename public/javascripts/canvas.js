@@ -192,6 +192,17 @@ $(function() {
     		alert("UNDO");
     	}
     });
+    
+    $("#viewport").click(function(e) {
+    	tableX = Math.round((e.pageX + (50.5 * pan_x)) / (0.2857 + (0.07143 * zoom)));
+    	tableY = Math.round((e.pageY + (35 * pan_y)) / (0.2857 + (0.07143 * zoom)));
+    	for (regionIndex in context.resources.checkerBoard.clickableRegions) { // TODO: checkerBoard?
+    		region = context.resources.checkerBoard.clickableRegions[regionIndex];
+    		if (tableX > region.relativeX && tableX < region.relativeX + region.width &&
+    		    tableY > region.relativeY && tableY < region.relativeY + region.height)
+    			alert(region.value);
+    	}
+    });
 
     $(window).resize(function() {
     	document.getElementById('viewport').width = window.innerWidth - 20;

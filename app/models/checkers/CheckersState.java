@@ -41,11 +41,11 @@ public class CheckersState extends GameState
         List<Sprite> blackCheckers = new ArrayList<>(12);
         List<Sprite> redCheckers = new ArrayList<>(12);
         for (int s = 0; s < 12; s++) {
-            Sprite blackCheckerSprite = new Sprite("blackChecker", toPixelX(tableX, s), toPixelY(tableY, s), 1, 
+            Sprite blackCheckerSprite = new Sprite("blackChecker", Checkers.toPixelX(tableX, s), Checkers.toPixelY(tableY, s), 1, 
                 Side.Front, Orientation.Normal, "black" + s); 
             blackCheckers.add(blackCheckerSprite);
             sprites.addSprite(1, "blackChecker" + s, blackCheckerSprite);
-            Sprite redCheckerSprite = new Sprite("redChecker", toPixelX(tableX, 20 + s), toPixelY(tableY, 20 + s), 1, 
+            Sprite redCheckerSprite = new Sprite("redChecker", Checkers.toPixelX(tableX, 20 + s), Checkers.toPixelY(tableY, 20 + s), 1, 
                 Side.Front, Orientation.Normal, "red" + s); 
             redCheckers.add(redCheckerSprite);
             sprites.addSprite(1, "redChecker" + s, redCheckerSprite);
@@ -65,7 +65,4 @@ public class CheckersState extends GameState
         expectedActions.add(new Action(1, PROMPT_SELECT_CHECKER, Choice.Category.TableClick, 1, null, null));
     }
     
-    // utility functions to convert logical/board position to graphical/sprite position
-    private int toPixelX (int tableX, int pos) { return tableX + 152 + (214 * (pos % 4)) - (107 * ((pos / 4) % 2)); }
-    private int toPixelY (int tableY, int pos) { return tableY + 50 + (pos / 4) * 107; }
 }
