@@ -10,12 +10,12 @@ public abstract class Game
 {
     protected List<Resource> resources = new ArrayList<>();
     
-    public void init () { addResources(); }
-    
+    public abstract void init ();    
     public abstract String getName ();    
     public abstract int getMinPlayers ();
     public abstract int getMaxPlayers ();
-    public abstract GameState createGameState (int numPlayers);
+    public abstract int getNumLayers ();
+    public abstract GameState createGameState (int numPlayers, int numLayers);
 
     public JsonNode getResourcesJson () {
         ObjectNode resourcesJson = Json.newObject();
@@ -23,6 +23,4 @@ public abstract class Game
             resourcesJson.put(resource.getName(), resource.getJson());
         return resourcesJson;
     }
-
-    protected abstract void addResources ();
 }

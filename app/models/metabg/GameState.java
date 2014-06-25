@@ -12,15 +12,15 @@ public abstract class GameState
 {
     public enum Status { WaitingForConnections, InProgress, WaitingForReconnections, GameOver }
     
-    protected Sprites sprites;
+    protected UserInterface userInterface;
     protected Set<Action> expectedActions;
     protected Status status;
     protected String[] playerNames;
     protected int[] scores;
     protected Set<Integer> disconnectedPlayers;
     
-    public GameState (int numPlayers) {
-        sprites = new Sprites(3); // TODO: make number of layers configurable by game?
+    public GameState (int numPlayers, int numLayers) {
+        userInterface = new UserInterface(numLayers);
         expectedActions = new HashSet<>(numPlayers);
         status = Status.WaitingForConnections;
         playerNames = new String[numPlayers];
@@ -54,7 +54,7 @@ public abstract class GameState
     
     public JsonNode getJson () {
         ObjectNode result = Json.newObject();
-        result.put("sprites", getSpritesJson());
+        result.put("userInterface", getUserInterfaceJson());
         result.put("expectedActions", getExpectedActionsJson());
         result.put("status", status.toString());
         result.put("playerNames", getPlayerNamesJson());
@@ -63,12 +63,12 @@ public abstract class GameState
         return result;
     }
 
-    protected void init () { initSprites(); initState(); }    
-    protected abstract void initSprites ();
+    protected void init () { initUserInterface(); initState(); }
+    protected abstract void initUserInterface ();
     protected abstract void initState ();
     
-    private JsonNode getSpritesJson () {
-        return sprites.getJson();        
+    private JsonNode getUserInterfaceJson () {
+        return userInterface.getJson();        
     }
     
     private JsonNode getExpectedActionsJson () {

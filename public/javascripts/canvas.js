@@ -78,11 +78,10 @@ $(function() {
     function loadSprites () {
     	spritesLoaded = true;
     	tableCtx.drawImage(window.images["table"], 0, 0);
-    	var sprites = gameState.sprites;
-    	for (var l in sprites) {
-    		var level = sprites[l];
-    		for (var s in level) {
-    			var sprite = level[s];
+    	for (var l in gameState.userInterface) {
+    		var layer = gameState.userInterface[l];
+    		for (var s in layer.sprites) {
+    			var sprite = layer.sprites[s];
     			var image = window.images[sprite.resource];
     			tableCtx.drawImage(image, sprite.x, sprite.y);
     		}
@@ -196,10 +195,10 @@ $(function() {
     $("#viewport").click(function(e) {
     	tableX = Math.round((e.pageX + (50.5 * pan_x)) / (0.2857 + (0.07143 * zoom)));
     	tableY = Math.round((e.pageY + (35 * pan_y)) / (0.2857 + (0.07143 * zoom)));
-    	for (regionIndex in context.resources.checkerBoard.clickableRegions) { // TODO: checkerBoard?
-    		region = context.resources.checkerBoard.clickableRegions[regionIndex];
-    		if (tableX > region.relativeX && tableX < region.relativeX + region.width &&
-    		    tableY > region.relativeY && tableY < region.relativeY + region.height)
+    	var relevantLayer = 0; // TODO: get relevant layer from expected action
+    	for (regionIndex in gameState.userInterface[relevantLayer].clickableRegions) {
+    		region = gameState.userInterface[relevantLayer].clickableRegions[regionIndex];
+    		if (tableX > region.x && tableX < region.x + region.width && tableY > region.y && tableY < region.y + region.height)
     			alert(region.value);
     	}
     });

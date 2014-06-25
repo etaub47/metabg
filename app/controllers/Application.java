@@ -59,7 +59,7 @@ public class Application extends Controller
         Game game = GameManager.getInstance().getGame(gameName);
         if (game == null || numPlayers < game.getMinPlayers() || numPlayers > game.getMaxPlayers())
             return badRequest();            
-        Table table = new Table(tableName, numPlayers, game.createGameState(numPlayers));
+        Table table = new Table(tableName, numPlayers, game.createGameState(numPlayers, game.getNumLayers()));
         boolean success = GameManager.getInstance().addTable(gameName, table);
         return success ? ok() : status(CONFLICT);
     }
