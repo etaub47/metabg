@@ -1,21 +1,24 @@
 package models.metabg;
 
+import models.metabg.Option.Category;
+import play.Logger;
 import play.libs.F.Callback;
 import play.libs.F.Callback0;
 import play.mvc.WebSocket;
 
 public class Seat
-{
+{    
+    public static final String MESSAGE_SEPARATOR = "|"; 
     public enum Status { Connected, Disconnected }
-    
-    private final int num;
+   
+    private final int playerNum;
     private final String playerName;
     private final Table table;
     private WebSocket.Out<String> outboundConnection;
     private Status status;
     
-    public Seat (int num, String playerName, Table table) {
-        this.num = num;
+    public Seat (int playerNum, String playerName, Table table) {
+        this.playerNum = playerNum;
         this.playerName = playerName;
         this.table = table;
         this.status = Status.Disconnected;
@@ -32,18 +35,39 @@ public class Seat
         this.status = Status.Connected;        
     }
     
-    public void incomingMessage (String message) {
-        // TODO
+    public void incomingMessage (String message) 
+    {
+        if (message == null || !message.contains(MESSAGE_SEPARATOR)) {
+            Logger.warn("Invalid message received from player ", playerNum, ": ", message);
+            return;
+        }
+        
+        String[] messageParts = message.split(MESSAGE_SEPARATOR);
+        Category category = null;
+        
+        try { category = Category.valueOf(messageParts[0]); }
+        catch (Exception e) {
+            Logger.warn("Invalid message category received from player ", playerNum, ": ", message);
+            return;            
+        }
+        
+        String value = messageParts[1];
+        table.processIncomingMessage(playerNum, category, value);
     }
 
     public void closeConnection () {
         this.outboundConnection = null;
         this.status = Status.Disconnected;
-        table.disconnectPlayer(num);
+        table.disconnectPlayer(playerNum);
     }
     
     public void sendState (GameState state) {
         if (outboundConnection != null && state != null)
             outboundConnection.write(state.getJson().toString());
+    }
+    
+    public void sendError (String message) {
+        if (outboundConnection != null)
+            outboundConnection.write("ERROR: " + message); // TODO: handle this in the javascript
     }
 }

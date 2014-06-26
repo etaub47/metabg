@@ -2,6 +2,8 @@ package models.metabg;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import models.metabg.Option.Category;
+import play.Logger;
 import play.libs.Json;
 import play.mvc.WebSocket;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -27,6 +29,7 @@ public class Table
     public String getName () { return name; }
     public Date getCreateDate () { return createDate; }
     public Seat[] getSeats () { return seats; }
+    public GameState getState () { return state; }
     
     public JsonNode getJson () {
         ObjectNode table = Json.newObject();
@@ -48,14 +51,66 @@ public class Table
         seats[seatNum].connect(inboundConnection, outboundConnection);
         state.playerConnected(seatNum);
         if (state.getStatus() != GameState.Status.WaitingForConnections)
-            for (Seat seat : seats)
-                seat.sendState(state);
+            sendState();
     }
     
     public synchronized void disconnectPlayer (int seatNum) {
         state.playerDisconnected(seatNum);
         if (state.getStatus() != GameState.Status.WaitingForConnections)
-            for (Seat seat : seats)
-                seat.sendState(state);        
+            sendState();
     }
+    
+    public void processIncomingMessage (int playerNum, Category category, String value) 
+    {
+        // make sure game is in progress first
+        if (state.getStatus() != GameState.Status.InProgress) {
+            Logger.info("Ignoring message while game is not in progress from player ", playerNum);
+            return;
+        }
+        
+        // determine the action based on player num 
+        Action selectedAction = state.getExpectedActionByPlayerNum(playerNum);
+        if (selectedAction == null) {
+            Logger.warn("Unexpected message received from player ", playerNum, ": ", category, "|", value);
+            return;
+        }
+        
+        // determine the option based on category
+        Option selectedOption = selectedAction.getOptionByCategory(category);
+        if (selectedOption == null) {
+            Logger.warn("Unexpected message category received from player ", playerNum, ": ", category, "|", value);
+            return;
+        }
+                
+        // non-numeric message or value out of range
+        if (category == Category.NumberPress) {
+            int number;
+            try { number = Integer.parseInt(value); }
+            catch (Exception e) { 
+                Logger.warn("Non-numeric message received from player ", playerNum, ": ", category, "|", value);
+                return;
+            }
+            if (number < selectedOption.getMin() || number > selectedOption.getMax()) {
+                Logger.warn("Out of range message received from player ", playerNum, ": ", category, "|", value);
+                return;
+            }
+        }
+        
+        // remove the expected action now that it has been fulfilled
+        state.removeExpectedAction(selectedAction);
+        
+        // process the event (game-specific)
+        Result result = state.processEvent(new Event(selectedOption.getType(), playerNum, value));
+
+        // process the result
+        switch (result.getType()) {
+            case STATE_CHANGE: sendState(); break;
+            case ERROR: sendError(playerNum, result.getMessage()); break;
+            case GAME_OVER: break; // TODO
+            default: break;
+        }
+    }
+    
+    private void sendState () { for (Seat seat : seats) seat.sendState(state); }    
+    private void sendError (int playerNum, String message) { seats[playerNum].sendError(message); }
 }

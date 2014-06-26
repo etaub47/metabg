@@ -21,17 +21,34 @@ public class Layer
         clickableRegions = new ArrayList<>();
     }
     
-    public void addSprite (Sprite sprite) {
-        sprites.add(sprite);
-    }
-    
-    public void addClickableRegion (ClickableRegion region) {
-        clickableRegions.add(region);
-    }
-    
+    public void addSprite (Sprite sprite) { sprites.add(sprite); }    
+    public void addClickableRegion (ClickableRegion region) { clickableRegions.add(region); }    
     public void addClickableSprite (Sprite sprite) {
         sprites.add(sprite);
         clickableRegions.add(sprite.getClickableRegion());
+    }
+    
+    public Sprite getSprite (String id) {
+        for (Sprite sprite : sprites)
+            if (sprite.getId().equals(id))
+                return sprite;
+        return null;
+    }
+    
+    public ClickableRegion getRegion (String id) {
+        for (ClickableRegion region : clickableRegions)
+            if (region.getId().equals(id))
+                return region;
+        return null;
+    }
+    
+    public void moveSprite (String id, int x, int y) {
+        Sprite sprite = getSprite(id);
+        if (sprite != null)
+            sprite.move(x, y);
+        ClickableRegion region = getRegion(id);
+        if (region != null)
+            region.move(x, y);
     }
     
     public void removeSprite (String id) {
@@ -41,16 +58,16 @@ public class Layer
             if (sprite.getId() == id)
                 iter.remove();
         }
+        removeClickableRegion(id);
+    }
+    
+    public void removeClickableRegion (String id) {
         Iterator<ClickableRegion> iter2 = clickableRegions.iterator();
         while (iter2.hasNext()) {
             ClickableRegion region = iter2.next();
-            if (region.getValue() == id)
+            if (region.getId() == id)
                 iter2.remove();
         }
-    }
-    
-    public void removeClickableRegion (ClickableRegion region) {
-        clickableRegions.remove(region);
     }
     
     public void sortSprites () {

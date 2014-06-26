@@ -199,7 +199,7 @@ $(function() {
     	for (regionIndex in gameState.userInterface[relevantLayer].clickableRegions) {
     		region = gameState.userInterface[relevantLayer].clickableRegions[regionIndex];
     		if (tableX > region.x && tableX < region.x + region.width && tableY > region.y && tableY < region.y + region.height)
-    			alert(region.value);
+    			alert(region.id);
     	}
     });
 

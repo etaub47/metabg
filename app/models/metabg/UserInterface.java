@@ -23,8 +23,10 @@ public class UserInterface
     
     public JsonNode getJson () {
         ArrayNode uiJson = JsonNodeFactory.instance.arrayNode();
-        for (Layer layer : layers)
+        for (Layer layer : layers) {
+            layer.sortSprites();
             uiJson.add(layer.getJson());
+        }
         return uiJson;
     }
 }

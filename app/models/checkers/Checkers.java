@@ -9,7 +9,7 @@ public class Checkers extends Game
     private static Game instance = new Checkers();
     public static Game getInstance () { return instance; }
     protected Checkers () { }
-
+    
     @Override
     public void init () {
         resources.add(new Resource("checkerBoard", "checkerBoard.png"));
@@ -23,5 +23,5 @@ public class Checkers extends Game
     @Override public int getNumLayers () { return 2; }
     @Override public GameState createGameState (int numPlayers, int numLayers) { 
         return new CheckersState(numPlayers, numLayers); 
-    }    
+    }
 }
