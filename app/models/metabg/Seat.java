@@ -8,7 +8,6 @@ import play.mvc.WebSocket;
 
 public class Seat
 {    
-    public static final String MESSAGE_SEPARATOR = "|"; 
     public enum Status { Connected, Disconnected }
    
     private final int playerNum;
@@ -37,17 +36,17 @@ public class Seat
     
     public void incomingMessage (String message) 
     {
-        if (message == null || !message.contains(MESSAGE_SEPARATOR)) {
-            Logger.warn("Invalid message received from player ", playerNum, ": ", message);
+        if (message == null || !message.contains("|")) {
+            Logger.warn("Invalid message received from player " + playerNum + ": " + message);
             return;
         }
         
-        String[] messageParts = message.split(MESSAGE_SEPARATOR);
+        String[] messageParts = message.split("\\|");
         Category category = null;
         
         try { category = Category.valueOf(messageParts[0]); }
         catch (Exception e) {
-            Logger.warn("Invalid message category received from player ", playerNum, ": ", message);
+            Logger.warn("Invalid message category received from player " + playerNum + ": " + message);
             return;            
         }
         

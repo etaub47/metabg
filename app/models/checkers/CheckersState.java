@@ -91,14 +91,14 @@ public class CheckersState extends GameState
         }
         
         // initial expected action: red to select checker
-        expectedActions.add(new Action(RED, PROMPT_SELECT_CHECKER, EventType.SELECT_CHECKER, Option.Category.TableClick, CHECKERS_LAYER));
+        expectedActions.add(new Action(RED, PROMPT_SELECT_CHECKER, EventType.SELECT_CHECKER, 
+            Option.Category.TableClick, CHECKERS_LAYER));
     }
     
     @Override
     protected Result processEvent (Event event)
     {
         // TODO: handle undo and cancel
-        // TODO: selections
         
         EventType eventType = (EventType) event.getType();
         switch (eventType) {
@@ -118,10 +118,18 @@ public class CheckersState extends GameState
         if (checker.getOwner() != event.getPlayerNum())
             return new Result(ResultType.ERROR, ERROR_WRONG_CHECKER);
         
-        // nothing much to do yet; let's start a new sequence for now and set up the next logical expected action
+        // start a new sequence and keep track of the selected checker 
         Sequence sequence = getOrCreateSequence("Sequence");
         sequence.addEvent(event);
-        expectedActions.add(new Action(event.getPlayerNum(), PROMPT_SELECT_SQUARE, EventType.SELECT_SQUARE, Option.Category.TableClick, BOARD_LAYER));        
+        
+        // highlight the selected checker for both players to see
+        userInterface.getLayer(CHECKERS_LAYER).getRegion(event.getValue()).setHighlightColor("white");
+        
+        // add the next logical expected action: the same player must now select a square to move to
+        expectedActions.add(new Action(event.getPlayerNum(), PROMPT_SELECT_SQUARE, EventType.SELECT_SQUARE, 
+            Option.Category.TableClick, BOARD_LAYER));
+        
+        // update the players' state
         return new Result(ResultType.STATE_CHANGE);
     }
     

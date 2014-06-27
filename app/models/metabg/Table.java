@@ -87,11 +87,11 @@ public class Table
             int number;
             try { number = Integer.parseInt(value); }
             catch (Exception e) { 
-                Logger.warn("Non-numeric message received from player ", playerNum, ": ", category, "|", value);
+                Logger.warn("Non-numeric message received from player " + playerNum + ": " + category + "|" + value);
                 return;
             }
             if (number < selectedOption.getMin() || number > selectedOption.getMax()) {
-                Logger.warn("Out of range message received from player ", playerNum, ": ", category, "|", value);
+                Logger.warn("Out of range message received from player " + playerNum + ": " + category + "|" + value);
                 return;
             }
         }

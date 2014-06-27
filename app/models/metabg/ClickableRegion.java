@@ -3,6 +3,7 @@ package models.metabg;
 import play.libs.Json;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Optional;
 
 public class ClickableRegion
 {
@@ -11,6 +12,7 @@ public class ClickableRegion
     private final int height;
     private int x;
     private int y;
+    private Optional<String> highlightColor;
     
     public ClickableRegion (int x, int y, int width, int height, String id) {
         this.x = x;
@@ -18,6 +20,7 @@ public class ClickableRegion
         this.width = width;
         this.height = height;
         this.id = id;
+        this.highlightColor = Optional.absent();
     }
     
     public String getId () { return id; }
@@ -29,6 +32,8 @@ public class ClickableRegion
         clickableRegionJson.put("y", y);
         clickableRegionJson.put("width", width);
         clickableRegionJson.put("height", height);
+        if (highlightColor.isPresent())
+            clickableRegionJson.put("highlightColor", highlightColor.get());
         return clickableRegionJson;
     }
     
@@ -36,6 +41,9 @@ public class ClickableRegion
         this.x = x;
         this.y = y;
     }
+    
+    public void setHighlightColor (String highlightColor) { this.highlightColor = Optional.of(highlightColor); } 
+    public void clearHighlightColor (String highlightColor) { this.highlightColor = Optional.absent(); } 
 
     @Override
     public int hashCode () {
