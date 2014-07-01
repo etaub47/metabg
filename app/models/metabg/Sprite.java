@@ -33,7 +33,7 @@ public class Sprite
     
     public String getId () { return id; }
     public int getZ () { return z; }    
-    public ClickableRegion getClickableRegion () { return new ClickableRegion(x, y, width, height, id); }
+    public Region createRegion () { return new Region(x, y, width, height, id); }
     
     public JsonNode getJson () {
         ObjectNode spriteJson = Json.newObject();

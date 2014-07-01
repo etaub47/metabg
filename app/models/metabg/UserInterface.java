@@ -19,9 +19,11 @@ public class UserInterface
             layers.add(new Layer());
     }
     
-    public Layer getLayer (int layer) { return layers.get(layer); }
+    public final Layer getLayer (int layer) { 
+        return layers.get(layer); 
+    }
     
-    public JsonNode getJson () {
+    public final JsonNode getJson () {
         ArrayNode uiJson = JsonNodeFactory.instance.arrayNode();
         for (Layer layer : layers) {
             layer.sortSprites();

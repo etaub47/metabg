@@ -6,21 +6,27 @@ import play.libs.Json;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public abstract class Game
+public class Game
 {
-    protected List<Resource> resources = new ArrayList<>();
+    private final List<Resource> resources;
+    private final IGameConfig config;
     
-    public abstract void init ();    
-    public abstract String getName ();    
-    public abstract int getMinPlayers ();
-    public abstract int getMaxPlayers ();
-    public abstract int getNumLayers ();
-    public abstract GameState createGameState (int numPlayers, int numLayers);
-
+    public Game (IGameConfig config) {
+        this.resources = new ArrayList<>();
+        this.config = config;
+    }
+    
+    public IGameConfig getConfig () { return config; }
+    public String getName () { return config.getName(); }
+    
     public JsonNode getResourcesJson () {
         ObjectNode resourcesJson = Json.newObject();
         for (Resource resource : resources)
             resourcesJson.put(resource.getName(), resource.getJson());
         return resourcesJson;
+    }
+    
+    public void init () {
+        config.init(resources);
     }
 }

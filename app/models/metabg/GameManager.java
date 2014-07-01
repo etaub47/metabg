@@ -4,14 +4,13 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import models.checkers.Checkers;
 
 public class GameManager
 {
     // TODO: read catalog from config file?
     private static GameManager instance = new GameManager();
     public static GameManager getInstance () { return instance; }
-    protected GameManager () { registerGame(Checkers.getInstance()); }
+    protected GameManager () { registerGame(new Game(models.checkers.CheckersConfig.getInstance())); } // TODO: remove this
     
     private Map<String, Game> catalog = new LinkedHashMap<>();    
     private Map<String, Map<String, Table>> tables = new LinkedHashMap<>();
@@ -20,7 +19,7 @@ public class GameManager
         game.init();
         catalog.put(game.getName(), game);
         tables.put(game.getName(), new LinkedHashMap<String, Table>());
-        addTable(game.getName(), new Table("Testing", 2, new models.checkers.CheckersState(2, 2))); // TODO: remove this
+        addTable(game.getName(), new Table(game.getConfig(), "Testing", 2)); // TODO: remove this
     }
     
     public List<Game> getCatalog () { return new ArrayList<>(catalog.values()); }

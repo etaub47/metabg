@@ -84,8 +84,8 @@ $(function() {
                 var image = window.images[sprite.resource];
                 tableCtx.drawImage(image, sprite.x, sprite.y);
             }
-            for (var cr in layer.clickableRegions) {
-            	var region = layer.clickableRegions[cr];
+            for (var r in layer.regions) {
+            	var region = layer.regions[r];
                 if (region.highlightColor) {
                     tableCtx.rect(region.x, region.y, region.width, region.height);
                     tableCtx.lineWidth = 5;
@@ -111,8 +111,8 @@ $(function() {
         else if (gameState.status == "InProgress") { // TODO: handle GameOver state
             var foundMe = false;
             var prompt = "";
-            for (var actionIndex in gameState.expectedActions) {
-                var action = gameState.expectedActions[actionIndex];
+            for (var a in gameState.actions) {
+                var action = gameState.actions[a];
                 if (action.player == me) {
                     foundMe = true;
                     myOptions = action.options;
@@ -120,8 +120,8 @@ $(function() {
                 }
             }
             if (!foundMe) {
-                if (gameState.expectedActions.length == 1) {
-                    var action = gameState.expectedActions[0];
+                if (gameState.actions.length == 1) {
+                    var action = gameState.actions[0];
                     displayMessage("Waiting for " + gameState.playerNames[action.player]);
                 }
                 else
@@ -207,8 +207,8 @@ $(function() {
             if (option.category == "TableClick") {
                 tableX = Math.round((e.pageX + (50.5 * pan_x)) / (0.2857 + (0.07143 * zoom)));
                 tableY = Math.round((e.pageY + (35 * pan_y)) / (0.2857 + (0.07143 * zoom)));
-                for (regionIndex in gameState.userInterface[option.layer].clickableRegions) {
-                    region = gameState.userInterface[option.layer].clickableRegions[regionIndex];
+                for (regionIndex in gameState.userInterface[option.layer].regions) {
+                    region = gameState.userInterface[option.layer].regions[regionIndex];
                     if (tableX > region.x && tableX < region.x + region.width && tableY > region.y && tableY < region.y + region.height)
                         doSend("TableClick|" + region.id);
                 }

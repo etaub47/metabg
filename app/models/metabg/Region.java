@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Optional;
 
-public class ClickableRegion
+public class Region
 {
     private final String id; // must be unique per game
     private final int width;
@@ -14,7 +14,7 @@ public class ClickableRegion
     private int y;
     private Optional<String> highlightColor;
     
-    public ClickableRegion (int x, int y, int width, int height, String id) {
+    public Region (int x, int y, int width, int height, String id) {
         this.x = x;
         this.y = y;
         this.width = width;
@@ -26,15 +26,15 @@ public class ClickableRegion
     public String getId () { return id; }
     
     public JsonNode getJson () {
-        ObjectNode clickableRegionJson = Json.newObject();
-        clickableRegionJson.put("id", id);
-        clickableRegionJson.put("x", x);
-        clickableRegionJson.put("y", y);
-        clickableRegionJson.put("width", width);
-        clickableRegionJson.put("height", height);
+        ObjectNode regionJson = Json.newObject();
+        regionJson.put("id", id);
+        regionJson.put("x", x);
+        regionJson.put("y", y);
+        regionJson.put("width", width);
+        regionJson.put("height", height);
         if (highlightColor.isPresent())
-            clickableRegionJson.put("highlightColor", highlightColor.get());
-        return clickableRegionJson;
+            regionJson.put("highlightColor", highlightColor.get());
+        return regionJson;
     }
     
     public void move (int x, int y) {
@@ -61,7 +61,7 @@ public class ClickableRegion
             return false;
         if (getClass() != obj.getClass())
             return false;
-        ClickableRegion other = (ClickableRegion) obj;
+        Region other = (Region) obj;
         if (id == null)
         {
             if (other.id != null)

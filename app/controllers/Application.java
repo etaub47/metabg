@@ -35,8 +35,8 @@ public class Application extends Controller
             tablesJson.add(table.getJson());
         ObjectNode gameJson = Json.newObject();
         gameJson.put("tables", tablesJson);
-        gameJson.put("minPlayers", game.getMinPlayers());
-        gameJson.put("maxPlayers", game.getMaxPlayers());
+        gameJson.put("minPlayers", game.getConfig().getMinPlayers());
+        gameJson.put("maxPlayers", game.getConfig().getMaxPlayers());
         return ok(gameJson);
     }
     
@@ -57,9 +57,9 @@ public class Application extends Controller
         if (gameName == null || tableName == null || numPlayers == null)
             return badRequest();
         Game game = GameManager.getInstance().getGame(gameName);
-        if (game == null || numPlayers < game.getMinPlayers() || numPlayers > game.getMaxPlayers())
+        if (game == null || numPlayers < game.getConfig().getMinPlayers() || numPlayers > game.getConfig().getMaxPlayers())
             return badRequest();            
-        Table table = new Table(tableName, numPlayers, game.createGameState(numPlayers, game.getNumLayers()));
+        Table table = new Table(game.getConfig(), tableName, numPlayers);
         boolean success = GameManager.getInstance().addTable(gameName, table);
         return success ? ok() : status(CONFLICT);
     }

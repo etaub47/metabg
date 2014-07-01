@@ -2,13 +2,15 @@ package models.checkers;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import models.metabg.Action;
-import models.metabg.ClickableRegion;
 import models.metabg.Event;
 import models.metabg.Event.IEventType;
 import models.metabg.GameState;
+import models.metabg.IGameLogic;
 import models.metabg.Layer;
 import models.metabg.Option;
+import models.metabg.Region;
 import models.metabg.Result;
 import models.metabg.Result.ResultType;
 import models.metabg.Sequence;
@@ -19,7 +21,7 @@ import models.metabg.UserInterface;
 import play.Logger;
 import utils.SpriteUtils;
 
-public class CheckersState extends GameState
+public class CheckersLogic implements IGameLogic
 {
     // event types
     public enum EventType implements IEventType { SELECT_CHECKER, SELECT_SQUARE, END_TURN, ERROR };
@@ -46,14 +48,13 @@ public class CheckersState extends GameState
     private Map<Integer, Checker> checkersByPosition;
     
     // constructor
-    public CheckersState (int numPlayers, int numLayers) {
-        super(numPlayers, numLayers);
+    public CheckersLogic (int numPlayers) {
         checkersById = new HashMap<>();
         checkersByPosition = new HashMap<>();
     }
     
     @Override
-    protected void initUserInterface () 
+    public void initUserInterface (UserInterface userInterface) 
     {
         // BOARD_LAYER
         Layer layer0 = userInterface.getLayer(BOARD_LAYER);
@@ -63,7 +64,7 @@ public class CheckersState extends GameState
             Side.Front, Orientation.Normal);
         layer0.addSprite(boardSprite);        
         for (int s = 0; s < 32; s++)
-            layer0.addClickableRegion(new ClickableRegion(toPixelX(tableX, s), toPixelY(tableY, s), 107, 107, String.valueOf(s)));
+            layer0.addRegion(new Region(toPixelX(tableX, s), toPixelY(tableY, s), 107, 107, String.valueOf(s)));
         
         // CHECKERS_LAYER
         Layer layer1 = userInterface.getLayer(CHECKERS_LAYER);
@@ -78,7 +79,7 @@ public class CheckersState extends GameState
     }
 
     @Override
-    protected void initState ()
+    public void initActions (Set<Action> actions, Map<String, Sequence> sequences)
     {
         // initialize checkers
         for (int s = 0; s < 12; s++) {
@@ -91,27 +92,27 @@ public class CheckersState extends GameState
         }
         
         // initial expected action: red to select checker
-        expectedActions.add(new Action(RED, PROMPT_SELECT_CHECKER, EventType.SELECT_CHECKER, 
+        actions.add(new Action(RED, PROMPT_SELECT_CHECKER, EventType.SELECT_CHECKER, 
             Option.Category.TableClick, CHECKERS_LAYER));
     }
     
     @Override
-    protected Result processEvent (Event event)
+    public Result processEvent (GameState state, Event event)
     {
         // TODO: handle undo and cancel
         
         EventType eventType = (EventType) event.getType();
         switch (eventType) {
-            case SELECT_CHECKER: return selectChecker(event);                
-            case SELECT_SQUARE: return selectSquare(event);
-            case END_TURN: return endTurn(event);
+            case SELECT_CHECKER: return selectChecker(state, event);                
+            case SELECT_SQUARE: return selectSquare(state, event);
+            case END_TURN: return endTurn(state, event);
             default: 
                 Logger.warn("Invalid event received: ", event);
                 return new Result(ResultType.DO_NOTHING);
         }
     }
     
-    private Result selectChecker (Event event)
+    private Result selectChecker (GameState state, Event event)
     {
         // validate move
         Checker checker = checkersById.get(event.getValue());
@@ -119,26 +120,26 @@ public class CheckersState extends GameState
             return new Result(ResultType.ERROR, ERROR_WRONG_CHECKER);
         
         // start a new sequence and keep track of the selected checker 
-        Sequence sequence = getOrCreateSequence("Sequence");
+        Sequence sequence = state.getOrCreateSequence("Sequence");
         sequence.addEvent(event);
         
         // highlight the selected checker for both players to see
-        userInterface.getLayer(CHECKERS_LAYER).getRegion(event.getValue()).setHighlightColor("white");
+        state.getUserInterface().getLayer(CHECKERS_LAYER).getRegion(event.getValue()).setHighlightColor("white");
         
         // add the next logical expected action: the same player must now select a square to move to
-        expectedActions.add(new Action(event.getPlayerNum(), PROMPT_SELECT_SQUARE, EventType.SELECT_SQUARE, 
+        state.addAction(new Action(event.getPlayerNum(), PROMPT_SELECT_SQUARE, EventType.SELECT_SQUARE, 
             Option.Category.TableClick, BOARD_LAYER));
         
         // update the players' state
         return new Result(ResultType.STATE_CHANGE);
     }
     
-    private Result selectSquare (Event event)
+    private Result selectSquare (GameState state, Event event)
     {
         return null; // TODO
     }
     
-    private Result endTurn (Event event)
+    private Result endTurn (GameState state, Event event)
     {
         return null; // TODO
     }

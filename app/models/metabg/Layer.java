@@ -14,18 +14,18 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class Layer
 {
     private List<Sprite> sprites;
-    private List<ClickableRegion> clickableRegions;
+    private List<Region> regions;
     
     public Layer () {
         sprites = new ArrayList<>();
-        clickableRegions = new ArrayList<>();
+        regions = new ArrayList<>();
     }
     
     public void addSprite (Sprite sprite) { sprites.add(sprite); }    
-    public void addClickableRegion (ClickableRegion region) { clickableRegions.add(region); }    
+    public void addRegion (Region region) { regions.add(region); }
     public void addClickableSprite (Sprite sprite) {
         sprites.add(sprite);
-        clickableRegions.add(sprite.getClickableRegion());
+        regions.add(sprite.createRegion());
     }
     
     public Sprite getSprite (String id) {
@@ -35,8 +35,8 @@ public class Layer
         return null;
     }
     
-    public ClickableRegion getRegion (String id) {
-        for (ClickableRegion region : clickableRegions)
+    public Region getRegion (String id) {
+        for (Region region : regions)
             if (region.getId().equals(id))
                 return region;
         return null;
@@ -46,7 +46,7 @@ public class Layer
         Sprite sprite = getSprite(id);
         if (sprite != null)
             sprite.move(x, y);
-        ClickableRegion region = getRegion(id);
+        Region region = getRegion(id);
         if (region != null)
             region.move(x, y);
     }
@@ -58,13 +58,13 @@ public class Layer
             if (sprite.getId() == id)
                 iter.remove();
         }
-        removeClickableRegion(id);
+        removeRegion(id);
     }
     
-    public void removeClickableRegion (String id) {
-        Iterator<ClickableRegion> iter2 = clickableRegions.iterator();
+    public void removeRegion (String id) {
+        Iterator<Region> iter2 = regions.iterator();
         while (iter2.hasNext()) {
-            ClickableRegion region = iter2.next();
+            Region region = iter2.next();
             if (region.getId() == id)
                 iter2.remove();
         }
@@ -81,9 +81,9 @@ public class Layer
             spritesJson.add(sprite.getJson());
         levelJson.put("sprites", spritesJson);                
         ArrayNode regionsJson = JsonNodeFactory.instance.arrayNode();
-        for (ClickableRegion region : clickableRegions)
+        for (Region region : regions)
             regionsJson.add(region.getJson());
-        levelJson.put("clickableRegions", regionsJson);
+        levelJson.put("regions", regionsJson);
         return levelJson;
     }
 }

@@ -15,15 +15,16 @@ public class Table
 {
     private final String name;
     private final Date createDate;
-    private final Seat[] seats;
+    private final Seat[] seats;    
+    private final GameState state;
+    private final IGameLogic logic;
     
-    private GameState state;
-    
-    public Table (String name, int numPlayers, GameState state) {
+    public Table (IGameConfig config, String name, int numPlayers) {
         this.name = name;
         this.createDate = new Date();
         this.seats = new Seat[numPlayers];
-        this.state = state; 
+        this.state = new GameState(numPlayers, config.getNumLayers());
+        this.logic = config.createGameLogic(numPlayers);
     }
     
     public String getName () { return name; }
@@ -49,7 +50,7 @@ public class Table
     
     public synchronized void connectPlayer (int seatNum, WebSocket.In<String> inboundConnection, WebSocket.Out<String> outboundConnection) {
         seats[seatNum].connect(inboundConnection, outboundConnection);
-        state.playerConnected(seatNum);
+        state.playerConnected(logic, seatNum);
         if (state.getStatus() != GameState.Status.WaitingForConnections)
             sendState();
     }
@@ -69,7 +70,7 @@ public class Table
         }
         
         // determine the action based on player num 
-        Action selectedAction = state.getExpectedActionByPlayerNum(playerNum);
+        Action selectedAction = state.getActionByPlayerNum(playerNum);
         if (selectedAction == null) {
             Logger.warn("Unexpected message received from player ", playerNum, ": ", category, "|", value);
             return;
@@ -96,11 +97,11 @@ public class Table
             }
         }
         
-        // remove the expected action now that it has been fulfilled
-        state.removeExpectedAction(selectedAction);
+        // remove the action now that it has been fulfilled
+        state.removeAction(selectedAction);
         
         // process the event (game-specific)
-        Result result = state.processEvent(new Event(selectedOption.getType(), playerNum, value));
+        Result result = logic.processEvent(state, new Event(selectedOption.getType(), playerNum, value));
 
         // process the result
         switch (result.getType()) {
