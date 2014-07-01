@@ -8,5 +8,5 @@ public interface IGameLogic
     public void initUserInterface (UserInterface userInterface);
     public void initActions (Set<Action> expectedActions, Map<String, Sequence> sequences);
     
-    public Result processEvent (GameState state, Event event);
+    public Result processEvent (GameState state, Event event) throws Exception;
 }

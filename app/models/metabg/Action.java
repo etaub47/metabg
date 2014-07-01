@@ -1,6 +1,8 @@
 package models.metabg;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import models.metabg.Event.IEventType;
 import models.metabg.Option.Category;
@@ -44,6 +46,12 @@ public class Action
         this.playerNum = playerNum;
         this.prompt = prompt;          
         this.options = choices;
+    }
+
+    public Action (int playerNum, String prompt, Option... choices) {
+        this.playerNum = playerNum;
+        this.prompt = prompt;          
+        this.options = new HashSet<Option>(Arrays.asList(choices));
     }
     
     public int getPlayerNum () { return playerNum; }

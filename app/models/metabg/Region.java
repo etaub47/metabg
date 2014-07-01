@@ -43,7 +43,7 @@ public class Region
     }
     
     public void setHighlightColor (String highlightColor) { this.highlightColor = Optional.of(highlightColor); } 
-    public void clearHighlightColor (String highlightColor) { this.highlightColor = Optional.absent(); } 
+    public void clearHighlightColor () { this.highlightColor = Optional.absent(); } 
 
     @Override
     public int hashCode () {

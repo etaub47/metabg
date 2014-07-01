@@ -3,6 +3,7 @@ package models.metabg;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import models.metabg.Option.Category;
+import models.metabg.Result.ResultType;
 import play.Logger;
 import play.libs.Json;
 import play.mvc.WebSocket;
@@ -99,9 +100,16 @@ public class Table
         
         // remove the action now that it has been fulfilled
         state.removeAction(selectedAction);
-        
+
         // process the event (game-specific)
-        Result result = logic.processEvent(state, new Event(selectedOption.getType(), playerNum, value));
+        Result result = null;
+        try { result = logic.processEvent(state, new Event(selectedOption.getType(), playerNum, value)); }
+        catch (Exception e) {
+            Logger.warn("An exception occurred in processEvent(" + selectedOption.getType() + ", " + playerNum + ", " +
+                value + "): " + e.getMessage());
+            e.printStackTrace();
+            result = new Result(ResultType.ERROR, "An unknown error occurred.");
+        }
 
         // process the result
         switch (result.getType()) {

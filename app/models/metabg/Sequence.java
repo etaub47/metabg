@@ -15,6 +15,8 @@ public class Sequence
     
     public String getId () { return id; }
     public List<Event> getEvents () { return events; }
+    public Event getFirstEvent () { return events.isEmpty() ? null : events.get(0); }
+    public Event getLastEvent () { return events.isEmpty() ? null : events.get(events.size() - 1); }
     
     public void addEvent (Event event) { events.add(event); }
 }
