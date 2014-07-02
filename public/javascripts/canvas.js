@@ -87,6 +87,7 @@ $(function() {
             for (var r in layer.regions) {
             	var region = layer.regions[r];
                 if (region.highlightColor) {
+                	tableCtx.beginPath();
                     tableCtx.rect(region.x, region.y, region.width, region.height);
                     tableCtx.lineWidth = 5;
                     tableCtx.strokeStyle = region.highlightColor;
@@ -100,6 +101,7 @@ $(function() {
     };
     
     function displayImportantMessage () {
+    	myOptions = [];
         if (gameState.status == "WaitingForConnections")
             displayMessage("Waiting for all players to connect...");
         else if (gameState.status == "WaitingForReconnections") {
@@ -137,21 +139,24 @@ $(function() {
         ctx.setTransform(0.2857 + (0.07143 * zoom), 0, 0, 0.2857 + (0.07143 * zoom), 0 - (50.5 * pan_x), 0 - (35 * pan_y));
         ctx.drawImage(table, 0, 0);
         ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.fillStyle = "black";
+        ctx.fillStyle = "gray";
         ctx.font = "12pt Helvetica";
         // ctx.fillText(window.innerWidth + "," + window.innerHeight, 50, 50);
         ctx.fillText(messages[0], 10, 25);
         ctx.fillText(messages[1], 10, 45);
         ctx.fillText(messages[2], 10, 65);
+        ctx.fillStyle = "black";
+        ctx.fillText(messages[3], 10, 85);
     };
 
     function displayMessage (message) {
-        if (messages.length < 3)
+        if (messages.length < 4)
             messages[messages.length] = message;
         else {
             messages[0] = messages[1];
             messages[1] = messages[2];
-            messages[2] = message;
+            messages[2] = messages[3];
+            messages[3] = message;
         }
         redraw();
     }

@@ -62,7 +62,7 @@ public class Table
             sendState();
     }
     
-    public void processIncomingMessage (int playerNum, Category category, String value) 
+    public synchronized void processIncomingMessage (int playerNum, Category category, String value) 
     {
         // make sure game is in progress first
         if (state.getStatus() != GameState.Status.InProgress) {
@@ -98,9 +98,11 @@ public class Table
             }
         }
         
-        // remove the action now that it has been fulfilled
+        // remove the action now that it has been processed
+        // if an error or exception occurs, we will have to restore this action
+        // nevertheless, we remove it now (rather than later) so that the game logic can create a new action of the same type if necessary
         state.removeAction(selectedAction);
-
+        
         // process the event (game-specific)
         Result result = null;
         try { result = logic.processEvent(state, new Event(selectedOption.getType(), playerNum, value)); }
@@ -112,11 +114,23 @@ public class Table
         }
 
         // process the result
-        switch (result.getType()) {
-            case STATE_CHANGE: sendState(); break;
-            case ERROR: sendError(playerNum, result.getMessage()); break;
-            case GAME_OVER: break; // TODO
-            default: break;
+        switch (result.getType()) 
+        {
+            case DO_NOTHING:
+                break;
+            
+            case STATE_CHANGE:
+                sendState(); 
+                break;
+                
+            case ERROR:
+                state.addAction(selectedAction); // restore the action since an error occurred
+                sendError(playerNum, result.getMessage()); 
+                break;
+                
+            case GAME_OVER:
+                // TODO
+                break;
         }
     }
     

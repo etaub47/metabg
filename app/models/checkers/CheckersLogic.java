@@ -18,7 +18,6 @@ import models.metabg.Sprite;
 import models.metabg.Sprite.Orientation;
 import models.metabg.Sprite.Side;
 import models.metabg.UserInterface;
-import play.Logger;
 import utils.SpriteUtils;
 
 public class CheckersLogic implements IGameLogic
@@ -106,9 +105,7 @@ public class CheckersLogic implements IGameLogic
             case SELECT_CHECKER: return selectChecker(state, event);                
             case SELECT_SQUARE: return selectSquare(state, event);
             case END_TURN: return endTurn(state, event);
-            default: 
-                Logger.warn("Invalid event received: ", event);
-                return new Result(ResultType.DO_NOTHING);
+            default: throw new IllegalArgumentException("Invalid event type received: " + event);
         }
     }
     
@@ -152,29 +149,32 @@ public class CheckersLogic implements IGameLogic
         }
         boolean rowACEG = (currentPosition / 4) % 2 == 0; // the checker is in row A, C, E, or G
         int moveValue = newPosition - currentPosition;
-        int rowMoveValue = (newPosition / 4) - (currentPosition / 4);        
+        int rowMoveValue = (newPosition / 4) - (currentPosition / 4);
+        boolean destinationEmpty = (checkersByPosition.get(newPosition) == null);
         
         // validate the move
-        if (rowMoveValue == -1 && !mustJump && (checker.isRed() || checker.isKing()) &&
+        if (rowMoveValue == -1 && !mustJump && (checker.isRed() || checker.isKing()) && destinationEmpty &&
             (moveValue == -4 || (moveValue == -3 && rowACEG) || (moveValue == -5 && !rowACEG))) 
         {
             // move one square toward the top of the board
             validMove = true;            
         }
-        else if (rowMoveValue == 1 && !mustJump && (checker.isBlack() || checker.isKing()) &&
-            (moveValue == 4 || (moveValue == 5 && rowACEG) || (moveValue == 3 && !rowACEG)))
+        else if (rowMoveValue == 1 && !mustJump && (checker.isBlack() || checker.isKing()) && destinationEmpty &&
+                 (moveValue == 4 || (moveValue == 5 && rowACEG) || (moveValue == 3 && !rowACEG)))
         {
             // move one square toward the bottom of the board
             validMove = true;            
         }
-        else if (rowMoveValue == -2 && (checker.isRed() || checker.isKing()) && (moveValue == -7 || moveValue == -9))
+        else if (rowMoveValue == -2 && (checker.isRed() || checker.isKing()) && destinationEmpty && 
+                 (moveValue == -7 || moveValue == -9))
         {
             // jump toward the top of the board
             int jumpedCheckerRelativePosition = (rowACEG && moveValue == -7) ? -3 : (!rowACEG && moveValue == -9) ? -5 : -4;
             jumpedChecker = checkersByPosition.get(currentPosition + jumpedCheckerRelativePosition);
             validMove = (jumpedChecker != null && jumpedChecker.getOwner() != checker.getOwner());
         }
-        else if (rowMoveValue == 2 && (checker.isBlack() || checker.isKing()) && (moveValue == 7 || moveValue == 9))
+        else if (rowMoveValue == 2 && (checker.isBlack() || checker.isKing()) && destinationEmpty &&
+                 (moveValue == 7 || moveValue == 9))
         {
             // jump toward the bottom of the board
             int jumpedCheckerRelativePosition = (rowACEG && moveValue == 9) ? 5 : (!rowACEG && moveValue == 7) ? 3 : 4;
@@ -184,14 +184,12 @@ public class CheckersLogic implements IGameLogic
         if (!validMove)
             return new Result(ResultType.ERROR, ERROR_INVALID_MOVE);
         
-        // if this is not a jump, the player's turn is over: move the checker, change the player's turn, and clean up
+        // if this is not a jump, the player's turn is over: remove the sequence and highlight, move the checker, and change turns
         if (jumpedChecker == null)
         {
-            checker.move(newPosition);
-            state.getUserInterface().getLayer(CHECKERS_LAYER).moveSprite(checker.getId(), 
-                toPixelX(tableX, newPosition), toPixelY(tableY, newPosition));            
             state.removeSequence("Sequence");
             state.getUserInterface().getLayer(CHECKERS_LAYER).getRegion(checker.getId()).clearHighlightColor();
+            moveChecker(checker, newPosition, state.getUserInterface());
             int nextPlayerTurn = event.getPlayerNum() == Checker.RED ? Checker.BLACK : Checker.RED;
             state.addAction(new Action(nextPlayerTurn, PROMPT_SELECT_CHECKER, EventType.SELECT_CHECKER, 
                 Option.Category.TableClick, CHECKERS_LAYER));
@@ -214,6 +212,14 @@ public class CheckersLogic implements IGameLogic
         return null; // TODO
     }
 
+    // helper function to move a checker: updates the checker, the sprite (and its region), and the checkersByPosition lookup map
+    private void moveChecker (Checker checker, int newPosition, UserInterface userInterface) {
+        checkersByPosition.remove(checker.getPosition());
+        checker.move(newPosition);
+        checkersByPosition.put(checker.getPosition(), checker);
+        userInterface.getLayer(CHECKERS_LAYER).moveSprite(checker.getId(), toPixelX(tableX, newPosition), toPixelY(tableY, newPosition));
+    }
+    
     // utility functions to convert logical/board position to graphical/sprite position
     private int toPixelX (int tableX, int pos) { return tableX + 152 + (214 * (pos % 4)) - (107 * ((pos / 4) % 2)); }
     private int toPixelY (int tableY, int pos) { return tableY + 50 + (pos / 4) * 107; }    
