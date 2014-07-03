@@ -15,12 +15,10 @@ public class GameState
     public enum Status { WaitingForConnections, InProgress, WaitingForReconnections, GameOver }
     public interface IScore { public String toDisplayString (); }
     
-    // these variables should never be manipulated by the game-specific logic
     private String[] playerNames;
     private Set<Integer> disconnectedPlayers;
-    
     private Status status;
-    private UserInterface userInterface;
+    private UserInterface userInterface;    
     private Set<Action> actions; // should only be at most one action per player
     private Map<String, Sequence> sequences;
     
@@ -35,8 +33,11 @@ public class GameState
             disconnectedPlayers.add(p);
     }
     
-    public Status getStatus () { return status; }
-    public UserInterface getUserInterface () { return userInterface; }
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
+    
+    public Layer getUILayer (int layer) { 
+        return userInterface.getLayer(layer); 
+    }
 
     public Action getActionByPlayerNum (int playerNum) {
         for (Action action : actions)
@@ -61,7 +62,11 @@ public class GameState
     
     public void removeSequence (String sequenceId) {
         sequences.remove(sequenceId);
-    }    
+    }
+    
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    Status getStatus () { return status; }
     
     JsonNode getJson () {
         ObjectNode result = Json.newObject();
@@ -76,10 +81,8 @@ public class GameState
     void playerConnected (IGameLogic logic, int seatNum) {
         disconnectedPlayers.remove(seatNum);
         if (disconnectedPlayers.isEmpty()) {
-            if (status == Status.WaitingForConnections) {
-                logic.initUserInterface(userInterface);
-                logic.initActions(actions, sequences);
-            }
+            if (status == Status.WaitingForConnections)
+                logic.init(this);
             if (status == Status.WaitingForConnections || status == Status.WaitingForReconnections)
                 status = Status.InProgress;
         }

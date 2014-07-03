@@ -8,9 +8,6 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
 public class UserInterface
 {
-    public static final String BOARD = "board";
-    public static final String SELECTION = "selection";
-
     private List<Layer> layers;
     
     public UserInterface (int numLayers) {

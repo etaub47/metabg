@@ -16,6 +16,8 @@ public class CheckersConfig implements IGameConfig
         resources.add(new Resource("checkerBoard", "checkerBoard.png"));
         resources.add(new Resource("redChecker", "redChecker.png"));
         resources.add(new Resource("blackChecker", "blackChecker.png"));
+        resources.add(new Resource("redKing", "redKing.png"));
+        resources.add(new Resource("blackKing", "blackKing.png"));
     }
     
     @Override public String getName () { return "Checkers"; }

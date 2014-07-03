@@ -19,7 +19,9 @@ public class Sprite
     private Side side;
     private Orientation orientation;
     
-    public Sprite (String id, String resource, int x, int y, int z, int width, int height, Side side, Orientation orientation) {
+    public Sprite (String id, String resource, int x, int y, int z, int width, int height, Side side, 
+        Orientation orientation) 
+    {
         this.id = id;
         this.resource = resource;
         this.x = x;
