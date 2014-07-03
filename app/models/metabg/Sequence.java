@@ -6,17 +6,18 @@ import java.util.List;
 public class Sequence
 {
     private final String id;
-    private final List<Event> events;
+    private final List<Step> steps;
     
     public Sequence (String id) {
         this.id = id;
-        this.events = new ArrayList<>();
+        this.steps = new ArrayList<>();
     }
     
     public String getId () { return id; }
-    public List<Event> getEvents () { return events; }
-    public Event getFirstEvent () { return events.isEmpty() ? null : events.get(0); }
-    public Event getLastEvent () { return events.isEmpty() ? null : events.get(events.size() - 1); }
+    public List<Step> getSteps () { return steps; }
+    public Step getFirstStep () { return steps.isEmpty() ? null : steps.get(0); }
+    public Step getLastStep () { return steps.isEmpty() ? null : steps.get(steps.size() - 1); }
     
-    public void addEvent (Event event) { events.add(event); }
+    public void addStep (Event event) { steps.add(new Step(event, null)); }
+    public void addStep (Event event, Object data) { steps.add(new Step(event, data)); }
 }

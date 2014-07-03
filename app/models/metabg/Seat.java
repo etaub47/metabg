@@ -67,6 +67,6 @@ public class Seat
     
     public void sendError (String message) {
         if (outboundConnection != null)
-            outboundConnection.write("ERROR: " + message); // TODO: handle this in the javascript
+            outboundConnection.write("ERROR: " + message);
     }
 }

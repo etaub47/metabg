@@ -55,7 +55,7 @@ public class Layer
         Iterator<Sprite> iter = sprites.iterator();
         while (iter.hasNext()) {
             Sprite sprite = iter.next();
-            if (sprite.getId() == id)
+            if (sprite.getId().equals(id))
                 iter.remove();
         }
         removeRegion(id);
@@ -65,7 +65,7 @@ public class Layer
         Iterator<Region> iter2 = regions.iterator();
         while (iter2.hasNext()) {
             Region region = iter2.next();
-            if (region.getId() == id)
+            if (region.getId().equals(id))
                 iter2.remove();
         }
     }

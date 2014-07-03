@@ -1,6 +1,7 @@
 package models.checkers;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import models.metabg.Action;
@@ -17,6 +18,7 @@ import models.metabg.Sequence;
 import models.metabg.Sprite;
 import models.metabg.Sprite.Orientation;
 import models.metabg.Sprite.Side;
+import models.metabg.Step;
 import models.metabg.UserInterface;
 import utils.SpriteUtils;
 
@@ -28,6 +30,9 @@ public class CheckersLogic implements IGameLogic
     // layer constants
     public static final int BOARD_LAYER = 0;
     public static final int CHECKERS_LAYER = 1;
+    
+    // sequence constants
+    public static final String SEQUENCE = "Sequence";
     
     // prompts    
     public static final String PROMPT_SELECT_CHECKER = "Please select a checker to move.";
@@ -116,9 +121,9 @@ public class CheckersLogic implements IGameLogic
         if (checker.getOwner() != event.getPlayerNum())
             return new Result(ResultType.ERROR, ERROR_WRONG_CHECKER);
         
-        // start a new sequence and keep track of the selected checker 
-        Sequence sequence = state.getOrCreateSequence("Sequence");
-        sequence.addEvent(event);
+        // start a new sequence to keep track of the selected checker 
+        Sequence sequence = state.getOrCreateSequence(SEQUENCE);
+        sequence.addStep(event, checker);
         
         // highlight the selected checker for both players to see
         state.getUserInterface().getLayer(CHECKERS_LAYER).getRegion(event.getValue()).setHighlightColor("white");
@@ -134,8 +139,8 @@ public class CheckersLogic implements IGameLogic
     private Result selectSquare (GameState state, Event event) throws Exception
     {
         // pull out some data we are going to need from the existing sequence and the current event
-        Sequence sequence = state.getOrCreateSequence("Sequence");
-        Event firstEvent = sequence.getFirstEvent(), lastEvent = sequence.getLastEvent();
+        Sequence sequence = state.getOrCreateSequence(SEQUENCE);
+        Event firstEvent = sequence.getFirstStep().getEvent(), lastEvent = sequence.getLastStep().getEvent();
         Checker checker = checkersById.get(firstEvent.getValue()), jumpedChecker = null;
         int currentPosition, newPosition = Integer.valueOf(event.getValue());
         boolean mustJump = false, validMove = false;
@@ -187,17 +192,18 @@ public class CheckersLogic implements IGameLogic
         // if this is not a jump, the player's turn is over: remove the sequence and highlight, move the checker, and change turns
         if (jumpedChecker == null)
         {
-            state.removeSequence("Sequence");
+            state.removeSequence(SEQUENCE);
             state.getUserInterface().getLayer(CHECKERS_LAYER).getRegion(checker.getId()).clearHighlightColor();
             moveChecker(checker, newPosition, state.getUserInterface());
+            // TODO: check for king promotion            
             int nextPlayerTurn = event.getPlayerNum() == Checker.RED ? Checker.BLACK : Checker.RED;
             state.addAction(new Action(nextPlayerTurn, PROMPT_SELECT_CHECKER, EventType.SELECT_CHECKER, 
                 Option.Category.TableClick, CHECKERS_LAYER));
         }
         else // a jump is not the end of the turn; let's update the sequence, highlight the grid square, and move on
         {
-            sequence.addEvent(event);
-            state.getUserInterface().getLayer(CHECKERS_LAYER).getRegion(event.getValue()).setHighlightColor("yellow");
+            sequence.addStep(event, jumpedChecker);
+            state.getUserInterface().getLayer(BOARD_LAYER).getRegion(event.getValue()).setHighlightColor("yellow");
             Option option1 = new Option(EventType.SELECT_SQUARE, Option.Category.TableClick, BOARD_LAYER);
             Option option2 = new Option(EventType.END_TURN, Option.Category.ConfirmPress);
             state.addAction(new Action(event.getPlayerNum(), PROMPT_SELECT_SQUARE_OR_END, option1, option2));
@@ -209,15 +215,50 @@ public class CheckersLogic implements IGameLogic
     
     private Result endTurn (GameState state, Event event)
     {
-        return null; // TODO
+        // get the steps from the sequence and determine the moving checker
+        Sequence sequence = state.getOrCreateSequence(SEQUENCE);
+        List<Step> steps = sequence.getSteps();
+        Checker movingChecker = (Checker) sequence.getFirstStep().getData();
+        
+        // remove the sequence and the highlighting around the moving checker's initial location
+        state.removeSequence(SEQUENCE);
+        state.getUserInterface().getLayer(CHECKERS_LAYER).getRegion(movingChecker.getId()).clearHighlightColor();
+        
+        // move the checker being moved
+        int finalPosition = Integer.valueOf(sequence.getLastStep().getEvent().getValue());
+        moveChecker(movingChecker, finalPosition, state.getUserInterface());
+        
+        // for each jump, remove the jumped checker and remove the relevant highlighted square
+        for (Step step : steps) {
+            if (step.getEvent().getType() == EventType.SELECT_SQUARE) {
+                removeChecker((Checker)step.getData(), state.getUserInterface());
+                state.getUserInterface().getLayer(BOARD_LAYER).getRegion(step.getEvent().getValue()).clearHighlightColor();
+            }
+        }
+        
+        // TODO: check for king promotion
+        // TODO: check for victory condition
+        
+        // set up the next player's turn
+        int nextPlayerTurn = event.getPlayerNum() == Checker.RED ? Checker.BLACK : Checker.RED;
+        state.addAction(new Action(nextPlayerTurn, PROMPT_SELECT_CHECKER, EventType.SELECT_CHECKER, 
+            Option.Category.TableClick, CHECKERS_LAYER));
+        return new Result(ResultType.STATE_CHANGE);
     }
 
-    // helper function to move a checker: updates the checker, the sprite (and its region), and the checkersByPosition lookup map
+    // helper function to move a checker
     private void moveChecker (Checker checker, int newPosition, UserInterface userInterface) {
         checkersByPosition.remove(checker.getPosition());
         checker.move(newPosition);
         checkersByPosition.put(checker.getPosition(), checker);
         userInterface.getLayer(CHECKERS_LAYER).moveSprite(checker.getId(), toPixelX(tableX, newPosition), toPixelY(tableY, newPosition));
+    }
+
+    // helper function to remove a checker
+    private void removeChecker (Checker checker, UserInterface userInterface) {
+        checkersById.remove(checker.getId());
+        checkersByPosition.remove(checker.getPosition());
+        userInterface.getLayer(CHECKERS_LAYER).removeSprite(checker.getId());
     }
     
     // utility functions to convert logical/board position to graphical/sprite position

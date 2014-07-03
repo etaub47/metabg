@@ -61,9 +61,13 @@ $(function() {
     }
 
     function onMessage (evt) {
-        gameState = jQuery.parseJSON(evt.data);
-        loadSprites();
-        displayImportantMessage();
+    	if (evt.data.indexOf("ERROR: ") == 0)
+    		displayMessage(evt.data.substring("ERROR: ".length));
+    	else {    	
+    		gameState = jQuery.parseJSON(evt.data);
+    		loadSprites();
+    		displayImportantMessage();
+    	}
     }
 
     function onError (evt) {
@@ -199,7 +203,7 @@ $(function() {
             redraw();
         }
         else if (e.which == 13 || e.which == 32) {
-            alert("SUBMIT");
+            doSend("ConfirmPress|Confirm");
         }
         else if (e.which == 27 || e.which == 8 || e.which == 46) {
             alert("UNDO");
