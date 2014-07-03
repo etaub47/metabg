@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class Option
 {
-    public enum Category { TableClick, CardClick, NumberPress, ConfirmPress };
+    public enum Category { TableClick, CardClick, NumberPress, Confirm, Undo };
 
     private final IEventType type;
     private final Category category;

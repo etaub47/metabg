@@ -203,10 +203,14 @@ $(function() {
             redraw();
         }
         else if (e.which == 13 || e.which == 32) {
-            doSend("ConfirmPress|Confirm");
+            for (var o in myOptions)
+                if (myOptions[o].category == "Confirm")
+                	doSend("Confirm|OK");
         }
         else if (e.which == 27 || e.which == 8 || e.which == 46) {
-            alert("UNDO");
+            for (var o in myOptions)
+                if (myOptions[o].category == "Undo")
+                	doSend("Undo|OK");
         }
     });
     

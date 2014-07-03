@@ -20,4 +20,6 @@ public class Sequence
     
     public void addStep (Event event) { steps.add(new Step(event, null)); }
     public void addStep (Event event, Object data) { steps.add(new Step(event, data)); }
+    public void removeLastStep () { if (!steps.isEmpty()) steps.remove(steps.size() - 1); }
+    public void removeAllSteps () { steps.clear(); }
 }
