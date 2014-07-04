@@ -128,7 +128,7 @@ public class CheckersLogic implements IGameLogic
         Option option1 = new Option(EventType.SELECT_SQUARE, Option.Category.TableClick, BOARD_LAYER);
         Option option2 = new Option(EventType.UNDO_CHECKER, Option.Category.Undo);
         state.addAction(new Action(event.getPlayerNum(), PROMPT_SELECT_SQUARE, option1, option2));
-        
+
         // update the players' state
         return new Result(ResultType.STATE_CHANGE);
     }
@@ -235,8 +235,16 @@ public class CheckersLogic implements IGameLogic
             }
         }
         
-        // TODO: check for victory condition
-        
+        // check for victory condition
+        boolean foundOpponentChecker = false;
+        for (Checker checker : checkersById.values())
+            if (checker.getOwner() != event.getPlayerNum())
+                foundOpponentChecker = true;
+        if (!foundOpponentChecker) {            
+            String gameOverMessage = (event.getPlayerNum() == Checker.BLACK ? "Black wins!" : "Red wins!");
+            return new Result(ResultType.GAME_OVER, gameOverMessage);
+        }
+
         // set up the next player's turn
         int nextPlayerTurn = event.getPlayerNum() == Checker.RED ? Checker.BLACK : Checker.RED;
         state.addAction(new Action(nextPlayerTurn, PROMPT_SELECT_CHECKER, EventType.SELECT_CHECKER, 

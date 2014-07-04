@@ -65,8 +65,8 @@ public class Seat
             outboundConnection.write(state.getJson().toString());
     }
     
-    public void sendError (String message) {
+    public void sendMessage (String message) {
         if (outboundConnection != null)
-            outboundConnection.write("ERROR: " + message);
+            outboundConnection.write(message);
     }
 }

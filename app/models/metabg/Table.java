@@ -125,15 +125,18 @@ public class Table
                 
             case ERROR:
                 state.addAction(selectedAction); // restore the action since an error occurred
-                sendError(playerNum, result.getMessage()); 
+                sendMessage(playerNum, "ERROR: " + result.getMessage()); 
                 break;
                 
             case GAME_OVER:
-                // TODO
+                state.endGame();
+                sendState(); 
+                sendMessage("GAMEOVER: " + result.getMessage()); 
                 break;
         }
     }
     
     private void sendState () { for (Seat seat : seats) seat.sendState(state); }    
-    private void sendError (int playerNum, String message) { seats[playerNum].sendError(message); }
+    private void sendMessage (int playerNum, String message) { seats[playerNum].sendMessage(message); }
+    private void sendMessage (String message) { for (Seat seat : seats) seat.sendMessage(message); }
 }

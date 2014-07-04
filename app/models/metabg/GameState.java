@@ -98,6 +98,10 @@ public class GameState
         playerNames[seatNum] = playerName; 
     }
     
+    void endGame () {
+        status = Status.GameOver;
+    }
+    
     private JsonNode getUserInterfaceJson () {
         return userInterface.getJson();        
     }

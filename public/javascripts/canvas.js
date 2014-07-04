@@ -61,13 +61,15 @@ $(function() {
     }
 
     function onMessage (evt) {
-    	if (evt.data.indexOf("ERROR: ") == 0)
-    		displayMessage(evt.data.substring("ERROR: ".length));
-    	else {    	
-    		gameState = jQuery.parseJSON(evt.data);
-    		loadSprites();
-    		displayImportantMessage();
-    	}
+        if (evt.data.indexOf("ERROR: ") == 0)
+            displayMessage(evt.data.substring("ERROR: ".length));
+        else if (evt.data.indexOf("GAMEOVER: ") == 0)
+            displayMessage(evt.data.substring("GAMEOVER: ".length));
+        else {
+            gameState = jQuery.parseJSON(evt.data);
+            loadSprites();
+            displayImportantMessage();
+        }
     }
 
     function onError (evt) {
@@ -89,9 +91,9 @@ $(function() {
                 tableCtx.drawImage(image, sprite.x, sprite.y);
             }
             for (var r in layer.regions) {
-            	var region = layer.regions[r];
+                var region = layer.regions[r];
                 if (region.highlightColor) {
-                	tableCtx.beginPath();
+                    tableCtx.beginPath();
                     tableCtx.rect(region.x, region.y, region.width, region.height);
                     tableCtx.lineWidth = 5;
                     tableCtx.strokeStyle = region.highlightColor;
@@ -105,7 +107,7 @@ $(function() {
     };
     
     function displayImportantMessage () {
-    	myOptions = [];
+        myOptions = [];
         if (gameState.status == "WaitingForConnections")
             displayMessage("Waiting for all players to connect...");
         else if (gameState.status == "WaitingForReconnections") {
@@ -114,7 +116,7 @@ $(function() {
             else            
                 displayMessage("Waiting for all players to reconnect...");
         }
-        else if (gameState.status == "InProgress") { // TODO: handle GameOver state
+        else if (gameState.status == "InProgress") {
             var foundMe = false;
             var prompt = "";
             for (var a in gameState.actions) {
@@ -133,7 +135,7 @@ $(function() {
                 else
                     displayMessage("Waiting for other players");
             }            
-        }            
+        }
     }
 
     // zoom = 0-10, pan_x = 0-50, y = 0-50
@@ -205,12 +207,12 @@ $(function() {
         else if (e.which == 13 || e.which == 32) {
             for (var o in myOptions)
                 if (myOptions[o].category == "Confirm")
-                	doSend("Confirm|OK");
+                    doSend("Confirm|OK");
         }
         else if (e.which == 27 || e.which == 8 || e.which == 46) {
             for (var o in myOptions)
                 if (myOptions[o].category == "Undo")
-                	doSend("Undo|OK");
+                    doSend("Undo|OK");
         }
     });
     
