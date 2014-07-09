@@ -27,6 +27,6 @@ public class CheckersConfig implements IGameConfig
     
     @Override
     public IGameLogic createGameLogic (int numPlayers) {
-        return new CheckersLogic(numPlayers);         
+        return new CheckersLogic();         
     }
 }

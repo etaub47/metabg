@@ -42,17 +42,11 @@ public class CheckersLogic implements IGameLogic
     public static final String ERROR_INVALID_MOVE = "That is not a valid move.";
     
     // state variables
-    private Map<String, Checker> checkersById;
-    private Map<Integer, Checker> checkersByPosition;
+    private Map<String, Checker> checkersById = new HashMap<>();
+    private Map<Integer, Checker> checkersByPosition = new HashMap<>();
     
     // other instance variables
     private int tableX, tableY;
-    
-    // constructor
-    public CheckersLogic (int numPlayers) {
-        checkersById = new HashMap<>();
-        checkersByPosition = new HashMap<>();
-    }
     
     @Override
     public void init (GameState state) 
@@ -97,8 +91,6 @@ public class CheckersLogic implements IGameLogic
     @Override
     public Result processEvent (GameState state, Event event) throws Exception
     {
-        // TODO: handle undo and cancel
-        
         EventType eventType = (EventType) event.getType();
         switch (eventType) {
             case SELECT_CHECKER: return selectChecker(state, event);                
@@ -138,69 +130,53 @@ public class CheckersLogic implements IGameLogic
         // pull out some data we are going to need from the existing sequence and the current event
         Sequence sequence = state.getOrCreateSequence(SEQUENCE);
         Event firstEvent = sequence.getFirstStep().getEvent(), lastEvent = sequence.getLastStep().getEvent();
-        Checker checker = checkersById.get(firstEvent.getValue()), jumpedChecker = null;
-        int currentPosition, newPosition = Integer.valueOf(event.getValue());
-        boolean mustJump = false, validMove = false;
+        Checker checker = checkersById.get(firstEvent.getValue());
+        int currentPosition, newPosition;
+        boolean mustJump = false;
 
-        // determine the current position of the selected checker and a few other useful pieces of information
+        // determine the current position of the selected checker
         EventType eventType = (EventType) lastEvent.getType();
         switch (eventType) {
             case SELECT_CHECKER: currentPosition = checkersById.get(lastEvent.getValue()).getPosition(); break;
             case SELECT_SQUARE: currentPosition = Integer.valueOf(lastEvent.getValue()); mustJump = true; break;
             default: throw new IllegalStateException("Unexpected event found in sequence");
         }
-        boolean rowACEG = (currentPosition / 4) % 2 == 0; // the checker is in row A, C, E, or G
-        int moveValue = newPosition - currentPosition;
-        int rowMoveValue = (newPosition / 4) - (currentPosition / 4);
-        boolean destinationEmpty = (checkersByPosition.get(newPosition) == null);
-        
+
         // validate the move
-        if (rowMoveValue == -1 && !mustJump && (checker.isRed() || checker.isKing()) && destinationEmpty &&
-            (moveValue == -4 || (moveValue == -3 && rowACEG) || (moveValue == -5 && !rowACEG))) 
-        {
-            // move one square toward the top of the board
-            validMove = true;            
-        }
-        else if (rowMoveValue == 1 && !mustJump && (checker.isBlack() || checker.isKing()) && destinationEmpty &&
-                 (moveValue == 4 || (moveValue == 5 && rowACEG) || (moveValue == 3 && !rowACEG)))
-        {
-            // move one square toward the bottom of the board
-            validMove = true;            
-        }
-        else if (rowMoveValue == -2 && (checker.isRed() || checker.isKing()) && destinationEmpty && 
-                 (moveValue == -7 || moveValue == -9))
-        {
-            // jump toward the top of the board
-            int jumpedCheckerRelativePosition = (rowACEG && moveValue == -7) ? -3 : (!rowACEG && moveValue == -9) ? -5 : -4;
-            jumpedChecker = checkersByPosition.get(currentPosition + jumpedCheckerRelativePosition);
-            validMove = (jumpedChecker != null && jumpedChecker.getOwner() != checker.getOwner());
-        }
-        else if (rowMoveValue == 2 && (checker.isBlack() || checker.isKing()) && destinationEmpty &&
-                 (moveValue == 7 || moveValue == 9))
-        {
-            // jump toward the bottom of the board
-            int jumpedCheckerRelativePosition = (rowACEG && moveValue == 9) ? 5 : (!rowACEG && moveValue == 7) ? 3 : 4;
-            jumpedChecker = checkersByPosition.get(currentPosition + jumpedCheckerRelativePosition);
-            validMove = (jumpedChecker != null && jumpedChecker.getOwner() != checker.getOwner());
-        }        
-        if (!validMove)
+        newPosition = Integer.valueOf(event.getValue());
+        if (!isMoveValid(checker, currentPosition, newPosition, mustJump))
             return new Result(ResultType.ERROR, ERROR_INVALID_MOVE);
-        
-        // if this is not a jump, the player's turn is over: remove the sequence and highlight, move the checker, and change turns
+
+        // now that the move has been validated, a jumped checker indicates this is a valid jump (null is a non-jump move)
+        Checker jumpedChecker = determineJumpedChecker(currentPosition, newPosition);
         if (jumpedChecker == null)
         {
+            // remove the sequence and the highlighting around the moving checker's initial location            
             state.removeSequence(SEQUENCE);
             state.getUILayer(CHECKERS_LAYER).getRegion(checker.getId()).clearHighlightColor();
+            
+            // move the checker being moved and check for king promotion
             moveChecker(checker, newPosition, state.getUILayer(CHECKERS_LAYER));
             checkForKingPromotion(checker, state.getUILayer(CHECKERS_LAYER));
-            int nextPlayerTurn = event.getPlayerNum() == Checker.RED ? Checker.BLACK : Checker.RED;
+            
+            // check for victory condition            
+            int nextPlayerTurn = (event.getPlayerNum() == Checker.BLACK) ? Checker.RED : Checker.BLACK;
+            if (!hasAnyValidMoves(nextPlayerTurn))
+                return new Result(ResultType.GAME_OVER, event.getPlayerNum() == Checker.BLACK ? "Black wins!" : "Red wins!");
+            
+            // set up the next player's turn            
             state.addAction(new Action(nextPlayerTurn, PROMPT_SELECT_CHECKER, EventType.SELECT_CHECKER, 
                 Option.Category.TableClick, CHECKERS_LAYER));
         }
-        else // a jump is not the end of the turn; let's update the sequence, highlight the grid square, and move on
+        else
         {
+            // update the sequence
             sequence.addStep(event, jumpedChecker);
+            
+            // highlight the selected grid square
             state.getUILayer(BOARD_LAYER).getRegion(event.getValue()).setHighlightColor("yellow");
+            
+            // set up the next player's turn                        
             Option option1 = new Option(EventType.SELECT_SQUARE, Option.Category.TableClick, BOARD_LAYER);
             Option option2 = new Option(EventType.END_TURN, Option.Category.Confirm);
             Option option3 = new Option(EventType.UNDO_SQUARE, Option.Category.Undo);
@@ -210,7 +186,7 @@ public class CheckersLogic implements IGameLogic
         // update the players' state
         return new Result(ResultType.STATE_CHANGE);
     }
-    
+
     private Result endTurn (GameState state, Event event)
     {
         // get the steps from the sequence and determine the moving checker
@@ -222,7 +198,7 @@ public class CheckersLogic implements IGameLogic
         state.removeSequence(SEQUENCE);
         state.getUILayer(CHECKERS_LAYER).getRegion(movingChecker.getId()).clearHighlightColor();
         
-        // move the checker being moved
+        // move the checker being moved and check for king promotion
         int finalPosition = Integer.valueOf(sequence.getLastStep().getEvent().getValue());
         moveChecker(movingChecker, finalPosition, state.getUILayer(CHECKERS_LAYER));
         checkForKingPromotion(movingChecker, state.getUILayer(CHECKERS_LAYER));
@@ -236,17 +212,11 @@ public class CheckersLogic implements IGameLogic
         }
         
         // check for victory condition
-        boolean foundOpponentChecker = false;
-        for (Checker checker : checkersById.values())
-            if (checker.getOwner() != event.getPlayerNum())
-                foundOpponentChecker = true;
-        if (!foundOpponentChecker) {            
-            String gameOverMessage = (event.getPlayerNum() == Checker.BLACK ? "Black wins!" : "Red wins!");
-            return new Result(ResultType.GAME_OVER, gameOverMessage);
-        }
+        int nextPlayerTurn = (event.getPlayerNum() == Checker.BLACK) ? Checker.RED : Checker.BLACK;
+        if (!hasAnyValidMoves(nextPlayerTurn))
+            return new Result(ResultType.GAME_OVER, event.getPlayerNum() == Checker.BLACK ? "Black wins!" : "Red wins!");
 
         // set up the next player's turn
-        int nextPlayerTurn = event.getPlayerNum() == Checker.RED ? Checker.BLACK : Checker.RED;
         state.addAction(new Action(nextPlayerTurn, PROMPT_SELECT_CHECKER, EventType.SELECT_CHECKER, 
             Option.Category.TableClick, CHECKERS_LAYER));
 
@@ -292,6 +262,60 @@ public class CheckersLogic implements IGameLogic
         // update the players' state
         return new Result(ResultType.STATE_CHANGE);
     }
+    
+    private boolean isMoveValid (Checker checker, int currentPosition, int newPosition, boolean mustJump)
+    {
+        boolean rowACEG = (currentPosition / 4) % 2 == 0; // the checker is in row A, C, E, or G
+        int moveValue = newPosition - currentPosition;
+        int rowMoveValue = (newPosition / 4) - (currentPosition / 4);
+        boolean destinationEmpty = (checkersByPosition.get(newPosition) == null);
+        
+        if (rowMoveValue == -1 && !mustJump && (checker.isRed() || checker.isKing()) && destinationEmpty &&
+            (moveValue == -4 || (moveValue == -3 && rowACEG) || (moveValue == -5 && !rowACEG))) 
+        {
+            // move one square toward the top of the board
+            return true;            
+        }
+        else if (rowMoveValue == 1 && !mustJump && (checker.isBlack() || checker.isKing()) && destinationEmpty &&
+                 (moveValue == 4 || (moveValue == 5 && rowACEG) || (moveValue == 3 && !rowACEG)))
+        {
+            // move one square toward the bottom of the board
+            return true;            
+        }
+        else if (rowMoveValue == -2 && (checker.isRed() || checker.isKing()) && destinationEmpty && 
+                 (moveValue == -7 || moveValue == -9))
+        {
+            // jump toward the top of the board
+            Checker jumpedChecker = determineJumpedChecker(currentPosition, newPosition); 
+            return (jumpedChecker != null && jumpedChecker.getOwner() != checker.getOwner());
+        }
+        else if (rowMoveValue == 2 && (checker.isBlack() || checker.isKing()) && destinationEmpty &&
+                 (moveValue == 7 || moveValue == 9))
+        {
+            // jump toward the bottom of the board
+            Checker jumpedChecker = determineJumpedChecker(currentPosition, newPosition); 
+            return (jumpedChecker != null && jumpedChecker.getOwner() != checker.getOwner());
+        }
+        else
+        {
+            return false;
+        }
+    }
+    
+    // helper function to determine the checker being jumped
+    private Checker determineJumpedChecker (int currentPosition, int newPosition) 
+    {
+        boolean rowACEG = (currentPosition / 4) % 2 == 0; // the checker is in row A, C, E, or G
+        int moveValue = newPosition - currentPosition;
+        
+        switch (moveValue) {
+            case -7: return checkersByPosition.get(currentPosition + (rowACEG ? -3 : -4));
+            case -9: return checkersByPosition.get(currentPosition + (rowACEG ? -4 : -5));
+            case  7: return checkersByPosition.get(currentPosition + (rowACEG ?  4 :  3));
+            case  9: return checkersByPosition.get(currentPosition + (rowACEG ?  5 :  4));
+            default: return null;
+        }
+    }
 
     // helper function to move a checker
     private void moveChecker (Checker checker, int newPosition, Layer uiLayer) {
@@ -320,6 +344,23 @@ public class CheckersLogic implements IGameLogic
                 1, 90, height, Side.Front, Orientation.Normal);
             uiLayer.addClickableSprite(kingSprite);
         }
+    }
+    
+    // helper function to determine if a particular checker has at least one valid move it can make
+    private boolean hasValidMove (Checker checker) {
+        int[] movesToCheck = new int[]{ 3, 4, 5, 7, 9, -3, -4, -5, -7, -9 };
+        for (int m = 0; m < movesToCheck.length; m++)
+            if (isMoveValid(checker, checker.getPosition(), checker.getPosition() + movesToCheck[m], false))
+                return true;        
+        return false;
+    }
+    
+    // helper function to determine if a player has at least one valid move he/she can make
+    private boolean hasAnyValidMoves (int playerNum) {
+        for (Checker checker : checkersById.values())
+            if (checker.getOwner() == playerNum && hasValidMove(checker))
+                return true;
+        return false;        
     }
     
     // utility functions to convert logical/board position to graphical/sprite position
