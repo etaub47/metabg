@@ -10,5 +10,6 @@ public interface IGameConfig
     public int getNumLayers ();
     
     public void init (List<Resource> resources);    
+    public Table createTestTable ();
     public IGameLogic createGameLogic (int numPlayers);
 }

@@ -4,6 +4,7 @@ import java.util.List;
 import models.metabg.IGameConfig;
 import models.metabg.IGameLogic;
 import models.metabg.Resource;
+import models.metabg.Table;
 
 public class CheckersConfig implements IGameConfig
 {
@@ -23,10 +24,7 @@ public class CheckersConfig implements IGameConfig
     @Override public String getName () { return "Checkers"; }
     @Override public int getMinPlayers () { return 2; }
     @Override public int getMaxPlayers () { return 2; }
-    @Override public int getNumLayers () { return 2; }
-    
-    @Override
-    public IGameLogic createGameLogic (int numPlayers) {
-        return new CheckersLogic();         
-    }
+    @Override public int getNumLayers () { return 2; }    
+    @Override public Table createTestTable () { return new Table(this, "Testing", 2); }    
+    @Override public IGameLogic createGameLogic (int numPlayers) { return new CheckersLogic(); }
 }

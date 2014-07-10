@@ -9,8 +9,6 @@ $(function() {
     var gameState, myOptions;
     var messages = ["", "", ""];
     
-    // TODO; limit the panning to the edge of the table
-
     var table = document.getElementById('table');
     var tableCtx = table.getContext('2d');
     var canvas = document.getElementById('viewport');
@@ -21,8 +19,6 @@ $(function() {
     window.numLoaded = 0;
     window.images["table"] = new Image();
     window.images["table"].src = "/resources/images/table.png";
-    
-    // TODO: deal with closures without using globals?
     
     function checkLoaded () {
         window.numLoaded++;
@@ -147,7 +143,6 @@ $(function() {
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.fillStyle = "gray";
         ctx.font = "12pt Helvetica";
-        // ctx.fillText(window.innerWidth + "," + window.innerHeight, 50, 50);
         ctx.fillText(messages[0], 10, 25);
         ctx.fillText(messages[1], 10, 45);
         ctx.fillText(messages[2], 10, 65);

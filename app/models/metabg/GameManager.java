@@ -19,8 +19,9 @@ public class GameManager
         game.init();
         catalog.put(game.getName(), game);
         tables.put(game.getName(), new LinkedHashMap<String, Table>());
-        if (game.getConfig().getMinPlayers() <= 2 && game.getConfig().getMaxPlayers() >= 2)
-            addTable(game.getName(), new Table(game.getConfig(), "Testing", 2));
+        Table testTable = game.getConfig().createTestTable();
+        if (testTable != null)
+            addTable(game.getName(), testTable);
     }
     
     private void registerGames () {
