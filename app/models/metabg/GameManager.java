@@ -4,22 +4,30 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import play.Play;
 
 public class GameManager
 {
-    // TODO: read catalog from config file?
     private static GameManager instance = new GameManager();
     public static GameManager getInstance () { return instance; }
-    protected GameManager () { registerGame(new Game(models.checkers.CheckersConfig.getInstance())); } // TODO: remove this
+    protected GameManager () { registerGames(); }
     
     private Map<String, Game> catalog = new LinkedHashMap<>();    
     private Map<String, Map<String, Table>> tables = new LinkedHashMap<>();
     
-    public void registerGame (Game game) {
+    private void registerGame (Game game) {
         game.init();
         catalog.put(game.getName(), game);
         tables.put(game.getName(), new LinkedHashMap<String, Table>());
-        addTable(game.getName(), new Table(game.getConfig(), "Testing", 2)); // TODO: remove this
+        if (game.getConfig().getMinPlayers() <= 2 && game.getConfig().getMaxPlayers() >= 2)
+            addTable(game.getName(), new Table(game.getConfig(), "Testing", 2));
+    }
+    
+    private void registerGames () {
+        String[] gameConfigNames = Play.application().configuration().getString("games").split(",");        
+        for (String gameConfigName : gameConfigNames)
+            try { registerGame(new Game((IGameConfig) ((Class.forName(gameConfigName)).getMethod("getInstance")).invoke(null))); }
+            catch (Exception e) { }
     }
     
     public List<Game> getCatalog () { return new ArrayList<>(catalog.values()); }
