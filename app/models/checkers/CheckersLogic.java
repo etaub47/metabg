@@ -30,7 +30,8 @@ public class CheckersLogic implements IGameLogic
     public static final int CHECKERS_LAYER = 1;
     
     // sequence constants
-    public static final String SEQUENCE = "Sequence";
+    public static final String SEQUENCE_ID = "CurrentSequence";
+    public static final String SEQUENCE_TYPE = "StandardTurn";
     
     // prompts    
     public static final String PROMPT_SELECT_CHECKER = "Please select a checker to move.";
@@ -53,9 +54,8 @@ public class CheckersLogic implements IGameLogic
     {
         // initialize board
         Layer layer0 = state.getUILayer(BOARD_LAYER);
-        SpriteUtils utils = SpriteUtils.getInstance();
-        tableX = utils.centerSpriteOnTableX(940); 
-        tableY = utils.centerSpriteOnTableY(948);
+        tableX = SpriteUtils.centerSpriteOnTableX(940); 
+        tableY = SpriteUtils.centerSpriteOnTableY(948);
         Sprite boardSprite = new Sprite("board", "checkerBoard", tableX, tableY, 0, 940, 948, 
             Side.Front, Orientation.Normal);
         layer0.addSprite(boardSprite);        
@@ -84,8 +84,9 @@ public class CheckersLogic implements IGameLogic
         }
         
         // initial expected action: red to select checker
-        state.addAction(new Action(Checker.RED, PROMPT_SELECT_CHECKER, EventType.SELECT_CHECKER, 
-            Option.Category.TableClick, CHECKERS_LAYER));
+        state.addAction(new Action.Builder().player(Checker.RED).prompt(PROMPT_SELECT_CHECKER)
+            .option(EventType.SELECT_CHECKER, Option.Category.TableClick, CHECKERS_LAYER)
+            .build());
     }
     
     @Override
@@ -110,16 +111,17 @@ public class CheckersLogic implements IGameLogic
             return new Result(ResultType.ERROR, ERROR_WRONG_CHECKER);
         
         // start a new sequence to keep track of the selected checker 
-        Sequence sequence = state.getOrCreateSequence(SEQUENCE);
+        Sequence sequence = state.createSequence(SEQUENCE_ID, SEQUENCE_TYPE);
         sequence.addStep(event, checker);
         
         // highlight the selected checker for both players to see
         state.getUILayer(CHECKERS_LAYER).getRegion(event.getValue()).setHighlightColor("white");
         
         // add the next expected action: the same player must now select a square to move to or undo their selection
-        Option option1 = new Option(EventType.SELECT_SQUARE, Option.Category.TableClick, BOARD_LAYER);
-        Option option2 = new Option(EventType.UNDO_CHECKER, Option.Category.Undo);
-        state.addAction(new Action(event.getPlayerNum(), PROMPT_SELECT_SQUARE, option1, option2));
+        state.addAction(new Action.Builder().player(event.getPlayerNum()).prompt(PROMPT_SELECT_SQUARE)
+            .option(EventType.SELECT_SQUARE, Option.Category.TableClick, BOARD_LAYER)
+            .option(EventType.UNDO_CHECKER, Option.Category.Undo)            
+            .build());
 
         // update the players' state
         return new Result(ResultType.STATE_CHANGE);
@@ -128,7 +130,7 @@ public class CheckersLogic implements IGameLogic
     private Result selectSquare (GameState state, Event event) throws Exception
     {
         // pull out some data we are going to need from the existing sequence and the current event
-        Sequence sequence = state.getOrCreateSequence(SEQUENCE);
+        Sequence sequence = state.getSequence(SEQUENCE_ID);
         Event firstEvent = sequence.getFirstStep().getEvent(), lastEvent = sequence.getLastStep().getEvent();
         Checker checker = checkersById.get(firstEvent.getValue());
         int currentPosition, newPosition;
@@ -152,7 +154,7 @@ public class CheckersLogic implements IGameLogic
         if (jumpedChecker == null)
         {
             // remove the sequence and the highlighting around the moving checker's initial location            
-            state.removeSequence(SEQUENCE);
+            state.removeSequence(SEQUENCE_ID);
             state.getUILayer(CHECKERS_LAYER).getRegion(checker.getId()).clearHighlightColor();
             
             // move the checker being moved and check for king promotion
@@ -164,9 +166,10 @@ public class CheckersLogic implements IGameLogic
             if (!hasAnyValidMoves(nextPlayerTurn))
                 return new Result(ResultType.GAME_OVER, event.getPlayerNum() == Checker.BLACK ? "Black wins!" : "Red wins!");
             
-            // set up the next player's turn            
-            state.addAction(new Action(nextPlayerTurn, PROMPT_SELECT_CHECKER, EventType.SELECT_CHECKER, 
-                Option.Category.TableClick, CHECKERS_LAYER));
+            // set up the next player's turn 
+            state.addAction(new Action.Builder().player(nextPlayerTurn).prompt(PROMPT_SELECT_CHECKER)
+                .option(EventType.SELECT_CHECKER, Option.Category.TableClick, CHECKERS_LAYER)
+                .build());
         }
         else
         {
@@ -177,10 +180,11 @@ public class CheckersLogic implements IGameLogic
             state.getUILayer(BOARD_LAYER).getRegion(event.getValue()).setHighlightColor("yellow");
             
             // set up the next player's turn                        
-            Option option1 = new Option(EventType.SELECT_SQUARE, Option.Category.TableClick, BOARD_LAYER);
-            Option option2 = new Option(EventType.END_TURN, Option.Category.Confirm);
-            Option option3 = new Option(EventType.UNDO_SQUARE, Option.Category.Undo);
-            state.addAction(new Action(event.getPlayerNum(), PROMPT_SELECT_SQUARE_OR_END, option1, option2, option3));
+            state.addAction(new Action.Builder().player(event.getPlayerNum()).prompt(PROMPT_SELECT_SQUARE_OR_END)
+                .option(EventType.SELECT_SQUARE, Option.Category.TableClick, BOARD_LAYER)
+                .option(EventType.END_TURN, Option.Category.Confirm)
+                .option(EventType.UNDO_SQUARE, Option.Category.Undo)
+                .build());
         }
         
         // update the players' state
@@ -190,12 +194,12 @@ public class CheckersLogic implements IGameLogic
     private Result endTurn (GameState state, Event event)
     {
         // get the steps from the sequence and determine the moving checker
-        Sequence sequence = state.getOrCreateSequence(SEQUENCE);
+        Sequence sequence = state.getSequence(SEQUENCE_ID);
         List<Step> steps = sequence.getSteps();
         Checker movingChecker = (Checker) sequence.getFirstStep().getData();
         
         // remove the sequence and the highlighting around the moving checker's initial location
-        state.removeSequence(SEQUENCE);
+        state.removeSequence(SEQUENCE_ID);
         state.getUILayer(CHECKERS_LAYER).getRegion(movingChecker.getId()).clearHighlightColor();
         
         // move the checker being moved and check for king promotion
@@ -217,8 +221,9 @@ public class CheckersLogic implements IGameLogic
             return new Result(ResultType.GAME_OVER, event.getPlayerNum() == Checker.BLACK ? "Black wins!" : "Red wins!");
 
         // set up the next player's turn
-        state.addAction(new Action(nextPlayerTurn, PROMPT_SELECT_CHECKER, EventType.SELECT_CHECKER, 
-            Option.Category.TableClick, CHECKERS_LAYER));
+        state.addAction(new Action.Builder().player(nextPlayerTurn).prompt(PROMPT_SELECT_CHECKER)
+            .option(EventType.SELECT_CHECKER, Option.Category.TableClick, CHECKERS_LAYER)
+            .build());
 
         // update the players' state
         return new Result(ResultType.STATE_CHANGE);
@@ -227,13 +232,14 @@ public class CheckersLogic implements IGameLogic
     private Result undoChecker (GameState state, Event event) throws Exception
     {
         // remove the existing highlighting, and remove the sequence altogether 
-        String undoCheckerId = state.getOrCreateSequence(SEQUENCE).getFirstStep().getEvent().getValue();
+        String undoCheckerId = state.getSequence(SEQUENCE_ID).getFirstStep().getEvent().getValue();
         state.getUILayer(CHECKERS_LAYER).getRegion(undoCheckerId).clearHighlightColor();
-        state.removeSequence(SEQUENCE);
+        state.removeSequence(SEQUENCE_ID);
         
         // prompt the player to select a different checker
-        state.addAction(new Action(event.getPlayerNum(), PROMPT_SELECT_CHECKER, EventType.SELECT_CHECKER, 
-            Option.Category.TableClick, CHECKERS_LAYER));
+        state.addAction(new Action.Builder().player(event.getPlayerNum()).prompt(PROMPT_SELECT_CHECKER)
+            .option(EventType.SELECT_CHECKER, Option.Category.TableClick, CHECKERS_LAYER)
+            .build());
 
         // update the players' state
         return new Result(ResultType.STATE_CHANGE);
@@ -242,21 +248,24 @@ public class CheckersLogic implements IGameLogic
     private Result undoSquare (GameState state, Event event) throws Exception
     {
         // remove the existing highlighted square and the most recent sequence step
-        Sequence sequence = state.getOrCreateSequence(SEQUENCE);
+        Sequence sequence = state.getSequence(SEQUENCE_ID);
         String undoSquareId = sequence.getLastStep().getEvent().getValue();
         state.getUILayer(BOARD_LAYER).getRegion(undoSquareId).clearHighlightColor();
         sequence.removeLastStep();
         
         // prompt the player to complete his/her turn
-        Option option1 = new Option(EventType.SELECT_SQUARE, Option.Category.TableClick, BOARD_LAYER);
         if (sequence.getSteps().size() == 1) {
-            Option option2 = new Option(EventType.UNDO_CHECKER, Option.Category.Undo);
-            state.addAction(new Action(event.getPlayerNum(), PROMPT_SELECT_SQUARE, option1, option2));            
+            state.addAction(new Action.Builder().player(event.getPlayerNum()).prompt(PROMPT_SELECT_SQUARE)
+                .option(EventType.SELECT_SQUARE, Option.Category.TableClick, BOARD_LAYER)
+                .option(EventType.UNDO_CHECKER, Option.Category.Undo)
+                .build());            
         }
         else {
-            Option option2 = new Option(EventType.END_TURN, Option.Category.Confirm);
-            Option option3 = new Option(EventType.UNDO_SQUARE, Option.Category.Undo);
-            state.addAction(new Action(event.getPlayerNum(), PROMPT_SELECT_SQUARE_OR_END, option1, option2, option3));            
+            state.addAction(new Action.Builder().player(event.getPlayerNum()).prompt(PROMPT_SELECT_SQUARE_OR_END)
+                .option(EventType.SELECT_SQUARE, Option.Category.TableClick, BOARD_LAYER)
+                .option(EventType.END_TURN, Option.Category.Confirm)
+                .option(EventType.UNDO_SQUARE, Option.Category.Undo)
+                .build());                        
         }
         
         // update the players' state

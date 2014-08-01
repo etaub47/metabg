@@ -1,11 +1,10 @@
 package models.metabg;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import play.libs.Json;
-import utils.SpriteComparator;
+import utils.SpriteUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -71,7 +70,7 @@ public class Layer
     }
     
     public void sortSprites () {
-        Collections.sort(sprites, new SpriteComparator());
+        SpriteUtils.sortSprites(sprites);
     }
     
     public JsonNode getJson () {

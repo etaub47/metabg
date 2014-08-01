@@ -3,6 +3,7 @@ package controllers;
 import java.util.List;
 import models.metabg.Game;
 import models.metabg.GameManager;
+import models.metabg.IGameModeFactory.IGameMode;
 import models.metabg.Seat;
 import models.metabg.Table;
 import play.Routes;
@@ -30,13 +31,18 @@ public class Application extends Controller
         List<Table> tables = GameManager.getInstance().getTables(gameName);
         if (game == null || tables == null) 
             return null;
+        List<? extends IGameMode> modes = game.getConfig().createGameModeFactory().getAllModes();
         ArrayNode tablesJson = JsonNodeFactory.instance.arrayNode();
         for (Table table : tables)
             tablesJson.add(table.getJson());
+        ArrayNode modesJson = JsonNodeFactory.instance.arrayNode();
+        for (IGameMode mode : modes)
+            modesJson.add(mode.toString());
         ObjectNode gameJson = Json.newObject();
         gameJson.put("tables", tablesJson);
         gameJson.put("minPlayers", game.getConfig().getMinPlayers());
         gameJson.put("maxPlayers", game.getConfig().getMaxPlayers());
+        gameJson.put("modes", modesJson);
         return ok(gameJson);
     }
     
@@ -53,13 +59,17 @@ public class Application extends Controller
     }
     
     // POST    /metabg/:game/:table    
-    public static Result createTable (String gameName, String tableName, Integer numPlayers) {
+    public static Result createTable (String gameName, String tableName, Integer numPlayers, String modeName) {
         if (gameName == null || tableName == null || numPlayers == null)
             return badRequest();
         Game game = GameManager.getInstance().getGame(gameName);
-        if (game == null || numPlayers < game.getConfig().getMinPlayers() || numPlayers > game.getConfig().getMaxPlayers())
-            return badRequest();            
-        Table table = new Table(game.getConfig(), tableName, numPlayers);
+        if (game == null || game.getConfig() == null || numPlayers < game.getConfig().getMinPlayers() || 
+            numPlayers > game.getConfig().getMaxPlayers())
+            return badRequest();
+        IGameMode mode = game.getConfig().createGameModeFactory().getMode(modeName);
+        if (mode == null)
+            return badRequest();
+        Table table = new Table(game.getConfig(), tableName, numPlayers, mode);
         boolean success = GameManager.getInstance().addTable(gameName, table);
         return success ? ok() : status(CONFLICT);
     }

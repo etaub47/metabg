@@ -11,45 +11,28 @@ public class Option
 
     private final IEventType type;
     private final Category category;
-    private final Integer layer; // layer for TableClick; card type for CardClick
-    private final Integer min, max; // for NumberPress    
+    private final Integer value; // layer for TableClick; card type for CardClick, value for NumberPress
 
     public Option (IEventType type, Category category) {
         this.type = type;
         this.category = category;
-        this.layer = -1;
-        this.min = -1;
-        this.max = -1;
+        this.value = -1;
     }
 
-    public Option (IEventType type, Category category, Integer layer) {
+    public Option (IEventType type, Category category, Integer value) {
         this.type = type;
         this.category = category;
-        this.layer = layer;
-        this.min = -1;
-        this.max = -1;
+        this.value = value;
     }
 
-    public Option (IEventType type, Category category, Integer min, Integer max) {
-        this.type = type;
-        this.category = category;
-        this.layer = -1;
-        this.min = min;
-        this.max = max;
-    }
-    
     public IEventType getType () { return type; }
     public Category getCategory () { return category; }
-    public Integer getLayer () { return layer; }
-    public Integer getMin () { return min; }
-    public Integer getMax () { return max; }
+    public Integer getValue () { return value; }
     
     public JsonNode getJson () {
         ObjectNode result = Json.newObject();
         result.put("category", category.toString());
-        result.put("layer", layer);
-        result.put("min", min);
-        result.put("max", max);
+        result.put("layer", value);
         return result;
     }    
 }

@@ -13,18 +13,17 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class GameState
 {
     public enum Status { WaitingForConnections, InProgress, WaitingForReconnections, GameOver }
-    public interface IScore { public String toDisplayString (); }
-    
+
     private String[] playerNames;
     private Set<Integer> disconnectedPlayers;
     private Status status;
     private UserInterface userInterface;    
-    private Set<Action> actions; // should only be at most one action per player
+    private Map<Integer, IAction> actions;
     private Map<String, Sequence> sequences;
     
     public GameState (int numPlayers, int numLayers) {
         userInterface = new UserInterface(numLayers);
-        actions = new HashSet<>(numPlayers);
+        actions = new HashMap<>(numPlayers);
         status = Status.WaitingForConnections;
         playerNames = new String[numPlayers];
         disconnectedPlayers = new HashSet<>(numPlayers);
@@ -39,25 +38,26 @@ public class GameState
         return userInterface.getLayer(layer); 
     }
 
-    public Action getActionByPlayerNum (int playerNum) {
-        for (Action action : actions)
-            if (action.getPlayerNum() == playerNum)
-                return action;
-        return null;
+    public IAction getActionByPlayerNum (int playerNum) {
+        return actions.get(playerNum);
     }
     
-    public void addAction (Action action) {
-        actions.add(action);
+    public void addAction (IAction action) {
+        actions.put(action.getPlayerNum(), action);
     }
     
-    public void removeAction (Action action) {
-        actions.remove(action);
+    public void removeActionByPlayerNum (int playerNum) {
+        actions.remove(playerNum);
     }
 
-    public Sequence getOrCreateSequence (String sequenceId) {
-        if (!sequences.containsKey(sequenceId))
-            sequences.put(sequenceId, new Sequence(sequenceId));
+    public Sequence getSequence (String sequenceId) {
         return sequences.get(sequenceId);
+    }
+
+    public Sequence createSequence (String sequenceId, String sequenceType) {
+        Sequence sequence = new Sequence(sequenceId, sequenceType);
+        sequences.put(sequenceId, sequence);
+        return sequence;
     }
     
     public void removeSequence (String sequenceId) {
@@ -108,7 +108,7 @@ public class GameState
     
     private JsonNode getActionsJson () {
         ArrayNode actionsJson = JsonNodeFactory.instance.arrayNode();
-        for (Action action : actions)
+        for (IAction action : actions.values())
             actionsJson.add(action.getJson());            
         return actionsJson;
     }

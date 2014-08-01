@@ -217,8 +217,8 @@ $(function() {
             if (option.category == "TableClick") {
                 tableX = Math.round((e.pageX + (50.5 * pan_x)) / (0.2857 + (0.07143 * zoom)));
                 tableY = Math.round((e.pageY + (35 * pan_y)) / (0.2857 + (0.07143 * zoom)));
-                for (regionIndex in gameState.userInterface[option.layer].regions) {
-                    region = gameState.userInterface[option.layer].regions[regionIndex];
+                for (regionIndex in gameState.userInterface[option.value].regions) {
+                    region = gameState.userInterface[option.value].regions[regionIndex];
                     if (tableX > region.x && tableX < region.x + region.width && tableY > region.y && tableY < region.y + region.height)
                         doSend("TableClick|" + region.id);
                 }

@@ -2,6 +2,7 @@ package models.metabg;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import models.metabg.IGameModeFactory.IGameMode;
 import models.metabg.Option.Category;
 import models.metabg.Result.ResultType;
 import play.Logger;
@@ -20,11 +21,11 @@ public class Table
     private final GameState state;
     private final IGameLogic logic;
     
-    public Table (IGameConfig config, String name, int numPlayers) {
+    public Table (IGameConfig config, String name, int numPlayers, IGameMode mode) {
         this.name = name;
         this.createDate = new Date();
         this.seats = new Seat[numPlayers];
-        this.state = new GameState(numPlayers, config.getNumLayers());
+        this.state = config.createGameState(numPlayers, mode);
         this.logic = config.createGameLogic(numPlayers);
     }
     
@@ -71,7 +72,7 @@ public class Table
         }
         
         // determine the action based on player num 
-        Action selectedAction = state.getActionByPlayerNum(playerNum);
+        IAction selectedAction = state.getActionByPlayerNum(playerNum);
         if (selectedAction == null) {
             Logger.warn("Unexpected message received from player ", playerNum, ": ", category, "|", value);
             return;
@@ -92,7 +93,7 @@ public class Table
                 Logger.warn("Non-numeric message received from player " + playerNum + ": " + category + "|" + value);
                 return;
             }
-            if (number < selectedOption.getMin() || number > selectedOption.getMax()) {
+            if (number < 1 || number > selectedOption.getValue()) {
                 Logger.warn("Out of range message received from player " + playerNum + ": " + category + "|" + value);
                 return;
             }
@@ -101,7 +102,7 @@ public class Table
         // remove the action now that it has been processed
         // if an error or exception occurs, we will have to restore this action
         // nevertheless, we remove it now (rather than later) so that the game logic can create a new action of the same type if necessary
-        state.removeAction(selectedAction);
+        state.removeActionByPlayerNum(playerNum);
         
         // process the event (game-specific)
         Result result = null;
