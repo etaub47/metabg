@@ -32,7 +32,7 @@ public class Option
     public JsonNode getJson () {
         ObjectNode result = Json.newObject();
         result.put("category", category.toString());
-        result.put("layer", value);
+        result.put("value", value);
         return result;
     }    
 }

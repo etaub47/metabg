@@ -1,8 +1,12 @@
 
 $(function() {
 
-    var wsUri = new String(window.location.href).replace("http", "ws") + "/connect";
-    var me = window.location.href.substring(window.location.href.lastIndexOf("/") + 1);
+    var uri = new String(window.location.href).replace("http", "ws");
+    var queryStringIndex = uri.indexOf("?");
+    if (queryStringIndex > 0) uri = uri.substring(0, queryStringIndex);    
+    var wsUri = uri + "/connect";    
+    
+    var me = uri.substring(uri.lastIndexOf("/") + 1);
     var range = 4, zoom = 3;
     var pan_x = (2560 - window.innerWidth) / 180;
     var pan_y = (1600 - window.innerHeight) / 110;
