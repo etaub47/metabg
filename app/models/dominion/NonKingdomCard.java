@@ -21,6 +21,7 @@ public enum NonKingdomCard implements IDominionCard
     @Override public String getName () { return card.getName(); }
     @Override public String getResourceKey () { return card.getResourceKey(); }
     @Override public String getSortKey () { return card.getSortKey(); }
+    @Override public int getCost () { return card.getCost(); }    
     @Override public boolean isKingdomCard () { return card.isKingdomCard(); }
     @Override public boolean isActionCard () { return card.isActionCard(); }
     @Override public boolean isTreasureCard () { return card.isTreasureCard(); }

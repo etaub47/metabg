@@ -4,6 +4,8 @@ import models.metabg.ICard;
 
 public interface IDominionCard extends ICard
 {
+    public int getCost (); 
+    
     public boolean isKingdomCard ();
     public boolean isActionCard ();
     public boolean isTreasureCard ();

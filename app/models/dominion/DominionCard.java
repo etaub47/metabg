@@ -14,6 +14,7 @@ public class DominionCard implements IDominionCard
     private final String name;
     private final String resourceKey;
     private final String sortKey;
+    private final int cost;
     
     private final Set<CardType> types;
     private final List<IEffect> effects;
@@ -21,12 +22,13 @@ public class DominionCard implements IDominionCard
     private final IFunction points;
     private final IFunction coins;
     
-    private DominionCard (String name, String resourceKey, String sortKey, Set<CardType> types, List<IEffect> effects,
+    private DominionCard (String name, String resourceKey, String sortKey, int cost, Set<CardType> types, List<IEffect> effects,
         List<IEffect> reactions, IFunction points, IFunction coins)
     {
         this.name = name;
         this.resourceKey = resourceKey;
         this.sortKey = sortKey;
+        this.cost = cost;
         this.types = types;
         this.effects = effects;
         this.reactions = reactions;
@@ -37,6 +39,7 @@ public class DominionCard implements IDominionCard
     @Override public String getName () { return name; }
     @Override public String getResourceKey () { return resourceKey; }
     @Override public String getSortKey () { return sortKey; }
+    @Override public int getCost () { return cost; }
     
     @Override public boolean isKingdomCard () { return types.contains(CardType.KingdomCard); }
     @Override public boolean isActionCard () { return types.contains(CardType.ActionCard); }
@@ -112,7 +115,7 @@ public class DominionCard implements IDominionCard
         public IDominionCard build () {
             String sortPrefix = (types.contains(CardType.ActionCard)) ? "A_" : (types.contains(CardType.TreasureCard)) ? "B_" : "C_";
             this.sortKey = sortPrefix + name;
-            return new DominionCard(name, resourceKey, sortKey, types, effects, reactions, points, coins);
+            return new DominionCard(name, resourceKey, sortKey, cost, types, effects, reactions, points, coins);
         }
     }
 }

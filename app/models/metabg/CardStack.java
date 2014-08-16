@@ -25,8 +25,8 @@ public class CardStack<T extends ICard>
     public boolean isDeck () { return type == Type.Deck; }
     public boolean isPile () { return type == Type.Pile; }
 
-    public ICard peekTopCard () { return this.cards.peekFirst(); }
-    public ICard peekBottomCard () { return this.cards.peekLast(); }
+    public T peekTopCard () { return this.cards.peekFirst(); }
+    public T peekBottomCard () { return this.cards.peekLast(); }
     
     public void addToTop (T card) { this.cards.addFirst(card); }
     public void addToTop (Collection<T> cards) { for (T card : cards) addToTop(card); }
@@ -36,8 +36,8 @@ public class CardStack<T extends ICard>
     public void addToBottom (Collection<T> cards) { for (T card : cards) addToBottom(card); }
     public void addToBottom (CardStack<T> stack) { addToBottom(stack.getCards()); stack.clear(); }
 
-    public ICard drawFromTop () { return this.cards.removeFirst(); }
-    public ICard drawFromBottom () { return this.cards.removeLast(); }
+    public T drawFromTop () { return this.cards.removeFirst(); }
+    public T drawFromBottom () { return this.cards.removeLast(); }
     
     public void drawFromTop (List<T> hand, int quantity) {
         quantity = quantity <= cards.size() ? quantity : cards.size();

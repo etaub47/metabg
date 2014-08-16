@@ -115,24 +115,26 @@ public class Table
         }
 
         // process the result
-        switch (result.getType()) 
+        switch (result.getType())
         {
             case DO_NOTHING:
                 break;
             
             case STATE_CHANGE:
+                if (result.hasMessage())
+                    sendMessage(result.getMessage());
                 sendState(); 
                 break;
                 
             case ERROR:
                 state.addAction(selectedAction); // restore the action since an error occurred
-                sendMessage(playerNum, "ERROR: " + result.getMessage()); 
+                sendMessage(playerNum, result.getMessage()); 
                 break;
                 
             case GAME_OVER:
                 state.endGame();
                 sendState(); 
-                sendMessage("GAMEOVER: " + result.getMessage()); 
+                sendMessage(result.getMessage()); 
                 break;
         }
     }

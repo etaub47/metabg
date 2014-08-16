@@ -73,11 +73,11 @@ public class Layer
         SpriteUtils.sortSprites(sprites);
     }
     
-    public JsonNode getJson () {
+    public JsonNode getJson (int playerNum) {
         ObjectNode levelJson = Json.newObject();
         ArrayNode spritesJson = JsonNodeFactory.instance.arrayNode();
         for (Sprite sprite : sprites)
-            spritesJson.add(sprite.getJson());
+            spritesJson.add(sprite.getJson(playerNum));
         levelJson.put("sprites", spritesJson);                
         ArrayNode regionsJson = JsonNodeFactory.instance.arrayNode();
         for (Region region : regions)

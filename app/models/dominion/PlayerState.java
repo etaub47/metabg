@@ -13,6 +13,14 @@ public class PlayerState
     private List<IDominionCard> hand = new ArrayList<>();
     private List<IDominionCard> revealedCards = new ArrayList<>();
     
+    public PlayerState () {
+        for (int c = 0; c < 7; c++)        
+            deck.addToBottom(NonKingdomCard.Copper);
+        for (int c = 0; c < 3; c++)        
+            deck.addToBottom(NonKingdomCard.Estate);
+        deck.shuffle();
+    }
+    
     public CardStack<IDominionCard> getDeck () { return deck; }
     public CardStack<IDominionCard> getDiscardPile () { return discardPile; }
     public List<IDominionCard> getHand () { return hand; }
@@ -27,10 +35,33 @@ public class PlayerState
         return cards;
     }
     
-    public Collection<IDominionCard> getDeckPlusDiscardPile () {
-        Collection<IDominionCard> cards = new ArrayList<>();
-        cards.addAll(deck.getCards());
-        cards.addAll(discardPile.getCards());
-        return cards;
+    public int countPoints (Input data) {
+        int points = 0;
+        for (IDominionCard card : getAllCards())
+            points = card.getPoints(data);
+        return points;
+    }
+    
+    public void drawCardsIntoHand (int numCards) {
+        hand.addAll(drawCards(numCards));
+    }
+    
+    public void revealCards (int numCards) {
+        revealedCards.addAll(drawCards(numCards));
+    }
+    
+    private List<IDominionCard> drawCards (int numCards) {
+        List<IDominionCard> drawnCards = new ArrayList<>(numCards);
+        while (drawnCards.size() < numCards) {
+            if (deck.isEmpty()) {
+                if (discardPile.isEmpty()) 
+                    break;
+                deck = discardPile;
+                discardPile = new CardStack<>(Type.Pile);
+                deck.shuffle();                
+            }            
+            drawnCards.add(deck.drawFromTop());
+        }
+        return drawnCards;
     }
 }

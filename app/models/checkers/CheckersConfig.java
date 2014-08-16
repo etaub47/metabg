@@ -34,6 +34,6 @@ public class CheckersConfig implements IGameConfig
     @Override public IGameModeFactory createGameModeFactory () { return new IGameModeFactory.DefaultGameModeFactory(); } 
     @Override public IGameLogic createGameLogic (int numPlayers) { return new CheckersLogic(); }
     @Override public GameState createGameState (int numPlayers, IGameMode mode) { 
-        return new GameState(numPlayers, getNumLayers()); 
+        return new CheckersGameState(numPlayers, getNumLayers()); 
     }
 }

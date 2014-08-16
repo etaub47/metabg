@@ -20,11 +20,11 @@ public class UserInterface
         return layers.get(layer); 
     }
     
-    public final JsonNode getJson () {
+    public final JsonNode getJson (int playerNum) {
         ArrayNode uiJson = JsonNodeFactory.instance.arrayNode();
         for (Layer layer : layers) {
             layer.sortSprites();
-            uiJson.add(layer.getJson());
+            uiJson.add(layer.getJson(playerNum));
         }
         return uiJson;
     }

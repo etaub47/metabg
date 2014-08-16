@@ -6,30 +6,53 @@ import java.util.List;
 import models.dominion.ActionFactory.PlayerAction;
 import models.dominion.Interfaces.IEffect;
 import models.dominion.Interfaces.IPredicate;
+import com.google.common.collect.Lists;
 
 public class Effects
 {
-    private static abstract class Effect implements IEffect 
-    {
-        protected final boolean self; // false = affects other players
-        protected final IPredicate check; // check must be true or effect does not happen
-        
-        protected Effect () { this.self = true; this.check = null; }
-        protected Effect (boolean self) { this.self = self; this.check = null; }
-        protected Effect (IPredicate check) { this.self = true; this.check = check; }
-        protected Effect (boolean self, IPredicate check) { this.self = self; this.check = check; }
-        
-        public boolean isSelf () { return self; }
-        public boolean check (Input data) { return (check == null) ? true : check.apply(data); }
+    public static abstract class Effect implements IEffect 
+    {            
+        public enum AffectsType { CurrentPlayer, OtherPlayers, AllPlayers }
 
-        @Override public boolean canUndo () { return true; }
+        private final AffectsType affects; // which player(s) is affected; defaults to current player
+        private final IPredicate check; // check must be true or effect does not happen; optional
+        
+        protected Effect () { this.affects = AffectsType.CurrentPlayer; this.check = null; }
+        protected Effect (AffectsType affects) { this.affects = affects; this.check = null; }
+        protected Effect (IPredicate check) { this.affects = AffectsType.CurrentPlayer; this.check = check; }
+        protected Effect (AffectsType affects, IPredicate check) { this.affects = affects; this.check = check; }
+
+        @Override public boolean check (Input data) { 
+            return (check == null) ? true : check.apply(data); 
+        }
+
+        @Override 
+        public boolean canUndo () { 
+            return true; 
+        }
+
+        public List<Input> crateInputStates (DominionGameState state) {
+            if (affects == AffectsType.CurrentPlayer)
+                return Lists.newArrayList(new Input(state, state.getCurrentPlayer()));
+            else {            
+                List<Input> inputStates = new ArrayList<>();
+                for (int p = 0; p < state.getNumPlayers(); p++)
+                    if (p != state.getCurrentPlayer() || affects == AffectsType.AllPlayers)
+                        inputStates.add(new Input(state, p));
+                return inputStates;
+            }
+        }
+        
+        protected boolean affectsCurrentPlayer () {
+            return affects == AffectsType.CurrentPlayer;
+        }
     }
     
-    private static abstract class PermanentEffect extends Effect implements IEffect
+    public static abstract class PermanentEffect extends Effect implements IEffect
     {
         private PermanentEffect () { super(); }
-        private PermanentEffect (boolean self, IPredicate check) { super(self, check); }
-        private PermanentEffect (boolean self) { super(self); }
+        private PermanentEffect (AffectsType affects, IPredicate check) { super(affects, check); }
+        private PermanentEffect (AffectsType affects) { super(affects); }
         private PermanentEffect (IPredicate check) { super(check); }
         
         @Override public boolean canUndo () { return false; }
@@ -38,22 +61,46 @@ public class Effects
     
     public static class DrawCardsEffect extends PermanentEffect implements IEffect
     {
-        public enum DrawCardsEffectType { Standard, UntilTwoCoins, UpToPauseAfterAction }
+        public enum DrawCardsEffectType { Standard, UntilTwoCoins, PauseAfterAction }
 
         private final DrawCardsEffectType type;
         private final int numCards;
         
-        public DrawCardsEffect (boolean self, DrawCardsEffectType type, int numCards) {
-            super(self);
+        public DrawCardsEffect (AffectsType affects, DrawCardsEffectType type, int numCards) {
+            super(affects);
             this.type = type;
             this.numCards = numCards;
         }
         
         @Override 
         public void execute (Input data) {
-            // TODO: draw cards
+            switch (type) {
+                case Standard: data.getActivePlayerState().drawCardsIntoHand(numCards); break;
+                case UntilTwoCoins: /* TODO */ break;
+                case PauseAfterAction: /* TODO */ break;
+            }            
         }
+        
+        // TODO: implicit check: at least one card in deck or discard pile
     }
+
+    public static class RevealCardsEffect extends PermanentEffect implements IEffect
+    {
+        private final int numCards;
+        
+        public RevealCardsEffect (AffectsType affects, int numCards) {
+            super(affects);
+            this.numCards = numCards;
+        }
+        
+        @Override 
+        public void execute (Input data) {
+            data.getActivePlayerState().revealCards(numCards);
+        }
+        
+        // TODO: implicit check: at least one card in deck or discard pile
+    }
+    
     
     public static class GainCardEffect extends Effect implements IEffect
     {
@@ -62,8 +109,8 @@ public class Effects
         private final GainCardEffectType type;
         private final IDominionCard card;
         
-        public GainCardEffect (boolean self, GainCardEffectType type, IDominionCard card) {
-            super(self);
+        public GainCardEffect (AffectsType affects, GainCardEffectType type, IDominionCard card) {
+            super(affects);
             this.type = type;
             this.card = card;
         }
@@ -83,8 +130,7 @@ public class Effects
     {
         private final int numActions;
         
-        public IncreaseActionsEffect (boolean self, int numActions) {
-            super(self);
+        public IncreaseActionsEffect (int numActions) {
             this.numActions = numActions; 
         }
         
@@ -107,11 +153,6 @@ public class Effects
             this.numCoins = numCoins; 
         }
         
-        public IncreaseCoinsEffect (boolean self, int numCoins) {
-            super(self);
-            this.numCoins = numCoins; 
-        }
-        
         @Override
         public void execute (Input data) {
             // TODO: increase coins            
@@ -127,8 +168,7 @@ public class Effects
     {
         private final int numBuys;
         
-        public IncreaseBuysEffect (boolean self, int numBuys) {
-            super(self);
+        public IncreaseBuysEffect (int numBuys) {
             this.numBuys = numBuys; 
         }
         
@@ -146,35 +186,44 @@ public class Effects
     public static class TriggerActionEffect extends Effect implements IEffect
     {
         private final PlayerAction action;
+        private final int value;
      
-        public TriggerActionEffect (boolean self, PlayerAction action) {
-            super(self, null);
+        public TriggerActionEffect (AffectsType affects, PlayerAction action) {
+            super(affects);
             this.action = action;
+            this.value = 0;
         }
 
-        public TriggerActionEffect (boolean self, PlayerAction action, IPredicate check) {
-            super(self, check);
+        public TriggerActionEffect (AffectsType affects, PlayerAction action, int value) {
+            super(affects);
             this.action = action;
+            this.value = value;
         }
 
-        /* TODO
-        super(self, new IPredicate() {
-            @Override public boolean apply (@Nullable Input input) {
-                return !input.getActivePlayerState().getDeckPlusDiscardPile().isEmpty(); 
-            }
-        });
-        */        
-        
+        public TriggerActionEffect (AffectsType affects, PlayerAction action, IPredicate check) {
+            super(affects, check);
+            this.action = action;
+            this.value = 0;
+        }
+
+        public TriggerActionEffect (AffectsType affects, PlayerAction action, int value, IPredicate check) {
+            super(affects, check);
+            this.action = action;
+            this.value = value;
+        }
+
         @Override
         public void execute (Input data) {
             // TODO: trigger action            
         }
         
-        @Override public boolean canUndo () { 
-            return self; 
+        @Override 
+        public boolean canUndo () { 
+            return affectsCurrentPlayer(); 
         }
         
-        @Override public void undo (Input data) { 
+        @Override 
+        public void undo (Input data) { 
             // TODO: undo trigger action
         }                
     }
@@ -201,7 +250,8 @@ public class Effects
             // TODO: trash this card            
         }
 
-        @Override public void undo (Input data) { 
+        @Override 
+        public void undo (Input data) { 
             // TODO: undo
         }        
     }

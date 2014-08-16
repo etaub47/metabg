@@ -58,7 +58,7 @@ public class DominionConfig implements IGameConfig
     @Override public int getMaxPlayers () { return 4; }
     @Override public int getNumLayers () { return 2; }
     
-    @Override public Table createTestTable () { return new Table(this,"Testing", 2, GameModeFactory.GameMode.FirstGame); }
+    @Override public Table createTestTable () { return new Table(this, "Testing", 2, GameModeFactory.GameMode.FirstGame); }
     
     @Override public IGameModeFactory createGameModeFactory () { return new GameModeFactory(); } 
     @Override public IGameLogic createGameLogic (int numPlayers) { return new DominionLogic(); }

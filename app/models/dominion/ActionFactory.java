@@ -6,16 +6,14 @@ import models.metabg.Option;
 
 public class ActionFactory
 {
-    // layer constants
-    public static final int BOARD_LAYER = 0;
-    public static final int CARD_LAYER = 1;
+    public enum PlayerAction { SelectAction, CellarAction, ChancellorAction, ChapelAction, GainCardAction, MilitiaAction,
+        MineTrashAction, MineGainAction, RemodelAction, SpyAction }
     
-    public enum PlayerAction { CellarAction, ChancellorAction, ChapelAction, FeastAction, MilitiaAction,
-        MineTrashAction, MineGainAction, RemodelTrashAction }
+    private DominionGameState state;
     
-    private static ActionFactory instance = new ActionFactory();
-    public static ActionFactory getInstance () { return instance; }
-    protected ActionFactory () { }
+    public ActionFactory (DominionGameState state) {
+        this.state = state;
+    }
     
     public IAction createAction (PlayerAction action, int playerNum) {
         return createAction(action, playerNum, -1);
@@ -23,11 +21,18 @@ public class ActionFactory
     
     public IAction createAction (PlayerAction action, int playerNum, int value) {
         switch (action) 
-        {            
+        {
+            case SelectAction:
+                return new Action.Builder().player(playerNum)
+                    .prompt("Select an action card to play, or press CONFIRM to decline and skip to the buy phase.")
+                    .option(EventType.PLAY_ACTION_CARD, Option.Category.TableClick, DominionGameState.CARD_LAYER)
+                    .option(EventType.END_ACTION_PHASE, Option.Category.Confirm)
+                    .build();
+            
             case CellarAction:
                 return new Action.Builder().player(playerNum)
                     .prompt("Select a card to discard, or press CONFIRM when you are done.")
-                    .option(EventType.CELLAR_DISCARD_CARD, Option.Category.TableClick, CARD_LAYER)
+                    .option(EventType.CELLAR_DISCARD_CARD, Option.Category.TableClick, DominionGameState.CARD_LAYER)
                     .option(EventType.END_ACTION_CARD, Option.Category.Confirm)
                     .option(EventType.UNDO_SELECT_CARD, Option.Category.Undo)
                     .build();
@@ -42,39 +47,46 @@ public class ActionFactory
             case ChapelAction:
                 return new Action.Builder().player(playerNum)
                     .prompt("Select a card to discard, or press CONFIRM if you are done.")
-                    .option(EventType.CHAPEL_TRASH_CARD, Option.Category.TableClick, CARD_LAYER)
+                    .option(EventType.CHAPEL_TRASH_CARD, Option.Category.TableClick, DominionGameState.CARD_LAYER)
                     .option(EventType.END_ACTION_CARD, Option.Category.Confirm)
                     .option(EventType.UNDO_SELECT_CARD, Option.Category.Undo)
                     .build();
                 
-            case FeastAction:
+            case GainCardAction:
                 return new Action.Builder().player(playerNum)
-                    .prompt("Gain a card costing up to 5.")
-                    .option(EventType.FEAST_GAIN_CARD, Option.Category.TableClick, CARD_LAYER)
+                    .prompt("Gain a card costing up to " + value + ".")
+                    .option(EventType.GAIN_CARD, Option.Category.TableClick, DominionGameState.CARD_LAYER)
                     .build();
                 
             case MilitiaAction:
                 return new Action.Builder().player(playerNum)
                     .prompt("Discard down to 3 cards in your hand.")
-                    .option(EventType.MILITIA_DISCARD_CARD, Option.Category.TableClick, CARD_LAYER)
+                    .option(EventType.MILITIA_DISCARD_CARD, Option.Category.TableClick, DominionGameState.CARD_LAYER)
                     .build();
                 
             case MineTrashAction:
                 return new Action.Builder().player(playerNum)
                     .prompt("Trash a treasure card from your hand.")
-                    .option(EventType.MINE_TRASH_CARD, Option.Category.TableClick, CARD_LAYER)
+                    .option(EventType.MINE_TRASH_CARD, Option.Category.TableClick, DominionGameState.CARD_LAYER)
                     .build();
             
             case MineGainAction:
                 return new Action.Builder().player(playerNum)
                     .prompt("Gain a treasure card costing up to " + value + "; put it into your hand.")
-                    .option(EventType.MINE_GAIN_CARD, Option.Category.TableClick, CARD_LAYER)
+                    .option(EventType.MINE_GAIN_CARD, Option.Category.TableClick, DominionGameState.CARD_LAYER)
                     .build();
                 
-            case RemodelTrashAction:
+            case RemodelAction:
                 return new Action.Builder().player(playerNum)
                     .prompt("Trash a card from your hand.")
-                    .option(EventType.REMODEL_TRASH_CARD, Option.Category.TableClick, CARD_LAYER)
+                    .option(EventType.REMODEL_TRASH_CARD, Option.Category.TableClick, DominionGameState.CARD_LAYER)
+                    .build();
+                
+            case SpyAction:
+                return new Action.Builder().player(playerNum)
+                    .prompt("Press 1 to have " + state.getPlayerName(value) + " discard the revealed card, or press 2 to put it back.")
+                    .option(EventType.SPY_DISCARD_CARD, Option.Category.NumberPress, 1)
+                    .option(EventType.SPY_KEEP_CARD, Option.Category.NumberPress, 2)
                     .build();
             
             default: 

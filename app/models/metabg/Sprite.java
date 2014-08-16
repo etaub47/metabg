@@ -37,7 +37,7 @@ public class Sprite
     public int getZ () { return z; }    
     public Region createRegion () { return new Region(x, y, width, height, id); }
     
-    public JsonNode getJson () {
+    public JsonNode getJson (int playerNum) {
         ObjectNode spriteJson = Json.newObject();
         spriteJson.put("id", id);
         spriteJson.put("resource", resource);
@@ -55,32 +55,5 @@ public class Sprite
     public void move (int x, int y) { this.x = x; this.y = y; }    
     public void flip () { this.side = ((this.side == Side.Front) ? Side.Back : Side.Front); }
     public void orient (Orientation orientation) { this.orientation = orientation; }
-    public void updateZ (int z) { this.z = z; }
-    
-    @Override
-    public int hashCode () {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((id == null) ? 0 : id.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals (Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        Sprite other = (Sprite) obj;
-        if (id == null)
-        {
-            if (other.id != null)
-                return false;
-        }
-        else if (!id.equals(other.id))
-            return false;
-        return true;
-    }    
+    public void updateZ (int z) { this.z = z; }    
 }

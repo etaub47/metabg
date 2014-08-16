@@ -34,6 +34,14 @@ public class GameState
     
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
     
+    public int getNumPlayers () {
+        return playerNames.length;
+    }
+    
+    public String getPlayerName (int playerNum) {
+        return playerNames[playerNum];
+    }
+    
     public Layer getUILayer (int layer) { 
         return userInterface.getLayer(layer); 
     }
@@ -68,9 +76,9 @@ public class GameState
 
     Status getStatus () { return status; }
     
-    JsonNode getJson () {
+    JsonNode getJson (int playerNum) {
         ObjectNode result = Json.newObject();
-        result.put("userInterface", getUserInterfaceJson());
+        result.put("userInterface", getUserInterfaceJson(playerNum));
         result.put("actions", getActionsJson());
         result.put("status", status.toString());
         result.put("playerNames", getPlayerNamesJson());
@@ -81,8 +89,6 @@ public class GameState
     void playerConnected (IGameLogic logic, int seatNum) {
         disconnectedPlayers.remove(seatNum);
         if (disconnectedPlayers.isEmpty()) {
-            if (status == Status.WaitingForConnections)
-                logic.init(this);
             if (status == Status.WaitingForConnections || status == Status.WaitingForReconnections)
                 status = Status.InProgress;
         }
@@ -102,8 +108,8 @@ public class GameState
         status = Status.GameOver;
     }
     
-    private JsonNode getUserInterfaceJson () {
-        return userInterface.getJson();        
+    private JsonNode getUserInterfaceJson (int playerNum) {
+        return userInterface.getJson(playerNum);        
     }
     
     private JsonNode getActionsJson () {

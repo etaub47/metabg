@@ -61,10 +61,8 @@ $(function() {
     }
 
     function onMessage (evt) {
-        if (evt.data.indexOf("ERROR: ") == 0)
-            displayMessage(evt.data.substring("ERROR: ".length));
-        else if (evt.data.indexOf("GAMEOVER: ") == 0)
-            displayMessage(evt.data.substring("GAMEOVER: ".length));
+        if (evt.data.indexOf("MESSAGE: ") == 0)
+            displayMessage(evt.data.substring("MESSAGE: ".length));
         else {
             gameState = jQuery.parseJSON(evt.data);
             loadSprites();
