@@ -3,7 +3,6 @@ package models.dominion;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import models.dominion.ActionFactory.PlayerAction;
 import models.dominion.Interfaces.IEffect;
 import models.dominion.Interfaces.IPredicate;
 import com.google.common.collect.Lists;
@@ -185,30 +184,30 @@ public class Effects
     
     public static class TriggerActionEffect extends Effect implements IEffect
     {
-        private final PlayerAction action;
+        private final ActionType actionType;
         private final int value;
      
-        public TriggerActionEffect (AffectsType affects, PlayerAction action) {
+        public TriggerActionEffect (AffectsType affects, ActionType actionType) {
             super(affects);
-            this.action = action;
+            this.actionType = actionType;
             this.value = 0;
         }
 
-        public TriggerActionEffect (AffectsType affects, PlayerAction action, int value) {
+        public TriggerActionEffect (AffectsType affects, ActionType actionType, int value) {
             super(affects);
-            this.action = action;
+            this.actionType = actionType;
             this.value = value;
         }
 
-        public TriggerActionEffect (AffectsType affects, PlayerAction action, IPredicate check) {
+        public TriggerActionEffect (AffectsType affects, ActionType actionType, IPredicate check) {
             super(affects, check);
-            this.action = action;
+            this.actionType = actionType;
             this.value = 0;
         }
 
-        public TriggerActionEffect (AffectsType affects, PlayerAction action, int value, IPredicate check) {
+        public TriggerActionEffect (AffectsType affects, ActionType actionType, int value, IPredicate check) {
             super(affects, check);
-            this.action = action;
+            this.actionType = actionType;
             this.value = value;
         }
 

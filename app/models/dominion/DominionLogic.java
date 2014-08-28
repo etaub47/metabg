@@ -10,7 +10,13 @@ public class DominionLogic implements IGameLogic
     @Override
     public Result processEvent (GameState state, Event event) throws Exception
     {
-        // TODO Auto-generated method stub
+        DominionGameState gameState = (DominionGameState) state; 
+        EventType eventType = (EventType) event.getType();
+        
+        switch (eventType) {
+            // TODO
+        }
+        
         return null;
     }
 }

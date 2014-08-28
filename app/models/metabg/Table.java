@@ -21,12 +21,12 @@ public class Table
     private final GameState state;
     private final IGameLogic logic;
     
-    public Table (IGameConfig config, String name, int numPlayers, IGameMode mode) {
+    public Table (Game game, String name, int numPlayers, IGameMode mode) {
         this.name = name;
         this.createDate = new Date();
         this.seats = new Seat[numPlayers];
-        this.state = config.createGameState(numPlayers, mode);
-        this.logic = config.createGameLogic(numPlayers);
+        this.state = game.getConfig().createGameState(game, numPlayers, mode);
+        this.logic = game.getConfig().createGameLogic(numPlayers);
     }
     
     public String getName () { return name; }
@@ -72,7 +72,7 @@ public class Table
         }
         
         // determine the action based on player num 
-        IAction selectedAction = state.getActionByPlayerNum(playerNum);
+        Action selectedAction = state.getActionByPlayerNum(playerNum);
         if (selectedAction == null) {
             Logger.warn("Unexpected message received from player ", playerNum, ": ", category, "|", value);
             return;
@@ -99,19 +99,33 @@ public class Table
             }
         }
         
-        // remove the action now that it has been processed
-        // if an error or exception occurs, we will have to restore this action
-        // nevertheless, we remove it now (rather than later) so that the game logic can create a new action of the same type if necessary
-        state.removeActionByPlayerNum(playerNum);
-        
-        // process the event (game-specific)
+        Event event = new Event(selectedOption.getType(), playerNum, value);
         Result result = null;
-        try { result = logic.processEvent(state, new Event(selectedOption.getType(), playerNum, value)); }
+        
+        // check for game-specific validation errors based on the event type        
+        String validationError = null;        
+        try {
+            validationError = event.getType().validate(state, event); 
+            if (validationError != null)
+                result = new Result(ResultType.ERROR, validationError);
+        }
         catch (Exception e) {
-            Logger.warn("An exception occurred in processEvent(" + selectedOption.getType() + ", " + playerNum + ", " +
-                value + "): " + e.getMessage());
-            e.printStackTrace();
-            result = new Result(ResultType.ERROR, "An unknown error occurred.");
+            Logger.error("An exception occurred in validate", e);
+            result = new Result(ResultType.ERROR, "An unexpected error occurred.");
+        }        
+        
+        // process the event
+        if (result == null) 
+        {
+            // remove the action now that we are fairly certain it will be processed
+            // if an application-level exception occurs, we do not try to recover, since this usually means the program has a bug 
+            state.removeActionByPlayerNum(playerNum);
+            
+            try { result = logic.processEvent(state, event); }
+            catch (Exception e) {
+                Logger.error("An exception occurred in processEvent", e);
+                result = new Result(ResultType.ERROR, "An unexpected error occurred.");
+            }
         }
 
         // process the result
@@ -127,14 +141,13 @@ public class Table
                 break;
                 
             case ERROR:
-                state.addAction(selectedAction); // restore the action since an error occurred
                 sendMessage(playerNum, result.getMessage()); 
                 break;
                 
             case GAME_OVER:
                 state.endGame();
                 sendState(); 
-                sendMessage(result.getMessage()); 
+                sendMessage(result.getMessage());
                 break;
         }
     }

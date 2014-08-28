@@ -69,7 +69,7 @@ public class Application extends Controller
         IGameMode mode = game.getConfig().createGameModeFactory().getMode(modeName);
         if (mode == null)
             return badRequest();
-        Table table = new Table(game.getConfig(), tableName, numPlayers, mode);
+        Table table = new Table(game, tableName, numPlayers, mode);
         boolean success = GameManager.getInstance().addTable(gameName, table);
         return success ? ok() : status(CONFLICT);
     }
@@ -96,6 +96,9 @@ public class Application extends Controller
         table.seatPlayer(seat, player);
         ObjectNode result = Json.newObject();
         result.put("resources", game.getResourcesJson());
+        result.put("zoom", game.getConfig().getInitialZoom());
+        result.put("pan_x", game.getConfig().getInitialX());
+        result.put("pan_y", game.getConfig().getInitialY());
         return ok(views.html.canvas.render(result.toString()));
     }
     

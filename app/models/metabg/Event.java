@@ -2,7 +2,9 @@ package models.metabg;
 
 public class Event
 {
-    public static interface IEventType { };
+    public static interface IEventType { 
+        public String validate (GameState state, Event event);        
+    };
     
     private final IEventType type;
     private final int playerNum;

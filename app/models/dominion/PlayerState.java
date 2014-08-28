@@ -19,6 +19,7 @@ public class PlayerState
         for (int c = 0; c < 3; c++)        
             deck.addToBottom(NonKingdomCard.Estate);
         deck.shuffle();
+        drawCardsIntoHand(5);
     }
     
     public CardStack<IDominionCard> getDeck () { return deck; }
@@ -44,6 +45,14 @@ public class PlayerState
     
     public void drawCardsIntoHand (int numCards) {
         hand.addAll(drawCards(numCards));
+    }
+    
+    public IDominionCard getCardByRegionId (String regionId) {
+        if (regionId.startsWith(DominionGameState.HAND)) 
+            return hand.get(Integer.valueOf(regionId.substring(DominionGameState.HAND.length())));
+        else if (regionId.startsWith(DominionGameState.REVEALED)) 
+            return revealedCards.get(Integer.valueOf(regionId.substring(DominionGameState.REVEALED.length())));
+        else return null;
     }
     
     public void revealCards (int numCards) {

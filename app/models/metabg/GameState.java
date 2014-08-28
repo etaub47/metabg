@@ -14,20 +14,21 @@ public class GameState
 {
     public enum Status { WaitingForConnections, InProgress, WaitingForReconnections, GameOver }
 
-    private String[] playerNames;
-    private Set<Integer> disconnectedPlayers;
-    private Status status;
-    private UserInterface userInterface;    
-    private Map<Integer, IAction> actions;
-    private Map<String, Sequence> sequences;
+    private final Game game;
     
-    public GameState (int numPlayers, int numLayers) {
+    private UserInterface userInterface;    
+    private Map<Integer, Action> actions;
+    private Status status;
+    private String[] playerNames;    
+    private Set<Integer> disconnectedPlayers;
+    
+    public GameState (Game game, int numPlayers, int numLayers) {
+        this.game = game;
         userInterface = new UserInterface(numLayers);
         actions = new HashMap<>(numPlayers);
         status = Status.WaitingForConnections;
         playerNames = new String[numPlayers];
         disconnectedPlayers = new HashSet<>(numPlayers);
-        sequences = new HashMap<>();
         for (int p = 0; p < numPlayers; p++)
             disconnectedPlayers.add(p);
     }
@@ -46,30 +47,20 @@ public class GameState
         return userInterface.getLayer(layer); 
     }
 
-    public IAction getActionByPlayerNum (int playerNum) {
+    public Action getActionByPlayerNum (int playerNum) {
         return actions.get(playerNum);
     }
     
-    public void addAction (IAction action) {
-        actions.put(action.getPlayerNum(), action);
+    public void addAction (IActionType actionType, int playerNum) {
+        actions.put(playerNum, actionType.createAction(this, playerNum));
     }
     
     public void removeActionByPlayerNum (int playerNum) {
         actions.remove(playerNum);
     }
 
-    public Sequence getSequence (String sequenceId) {
-        return sequences.get(sequenceId);
-    }
-
-    public Sequence createSequence (String sequenceId, String sequenceType) {
-        Sequence sequence = new Sequence(sequenceId, sequenceType);
-        sequences.put(sequenceId, sequence);
-        return sequence;
-    }
-    
-    public void removeSequence (String sequenceId) {
-        sequences.remove(sequenceId);
+    public Resource getResource (String name) {
+        return game.getResource(name);
     }
     
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -114,7 +105,7 @@ public class GameState
     
     private JsonNode getActionsJson () {
         ArrayNode actionsJson = JsonNodeFactory.instance.arrayNode();
-        for (IAction action : actions.values())
+        for (Action action : actions.values())
             actionsJson.add(action.getJson());            
         return actionsJson;
     }

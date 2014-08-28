@@ -1,15 +1,43 @@
 package models.dominion;
 
+import models.metabg.CardStack;
+import models.metabg.Event;
 import models.metabg.Event.IEventType;
+import models.metabg.GameState;
 
 public enum EventType implements IEventType
 {
-    PLAY_ACTION_CARD, // card from hand, maybe undoable
-    END_RESPONSE,     // confirm, not undoable (militia)
-    END_ACTION_CARD,  // confirm, maybe undoable    
-    END_ACTION_PHASE, // confirm, not undoable
-    BUY_CARD,         // supply pile, undoable
-    END_BUY_PHASE,    // confirm, not undoable
+    PLAY_ACTION_CARD {
+        @Override public String validate (GameState state, Event event) {
+            DominionGameState gameState = (DominionGameState) state;
+            if (!isHand(event.getValue(), event.getPlayerNum()))
+                return "You must select a card from your hand, or press CONFIRM to decline.";
+            IDominionCard card = gameState.getPlayerData(event.getPlayerNum()).getCardByRegionId(event.getValue());
+            if (!card.isActionCard())
+                return "You must select an action card from your hand, or press CONFIRM to decline.";            
+            return null;
+        }
+    },
+    
+    END_RESPONSE,    
+    END_ACTION_CARD,
+    END_ACTION_PHASE,
+    
+    BUY_CARD {
+        @Override public String validate (GameState state, Event event) {
+            DominionGameState gameState = (DominionGameState) state;
+            if (!isSupplyPile(event.getValue()))
+                return "You must select a supply pile to buy a card, or press CONFIRM to decline.";
+            CardStack<IDominionCard> supplyPile = gameState.getSupplyPileByRegionId(event.getValue());
+            if (supplyPile.isEmpty())
+                return "That supply pile is empty; please select a different pile, or press CONFIRM to decline.";
+            if (supplyPile.peekTopCard().getCost() > gameState.getNumCoins())
+                return "You do not have enough coins; please select a different pile, or press CONFIRM to decline.";
+            return null;
+        }
+    },
+    
+    END_BUY_PHASE,
 
     BUREAUCRAT_REVEAL_VICTORY_CARD, // card from hand, not undoable 
     CELLAR_DISCARD_CARD,            // card from hand, undoable
@@ -32,6 +60,24 @@ public enum EventType implements IEventType
     THIEF_TAKE_CARD,                // 2, not undoable
     THRONE_ROOM_PLAY_CARD,          // card from hand, maybe undoable
 
-    UNDO_SELECT_CARD                // cellar, chapel, militia
+    UNDO_SELECT_CARD;               // cellar, chapel, militia
     //UNDO_
+    
+    @Override
+    public String validate (GameState state, Event event) { 
+        return null; 
+    }
+    
+    private static boolean isSupplyPile (String regionId) { 
+        return regionId != null && (regionId.startsWith(DominionGameState.KINGDOM) || regionId.startsWith(DominionGameState.TREASURE) ||
+            regionId.startsWith(DominionGameState.VICTORY));
+    }
+    
+    private static boolean isHand (String regionId, int player) { 
+        return regionId != null && regionId.startsWith(DominionGameState.HAND + player);
+    }
+    
+    private static boolean isRevealedCard (String regionId, int player) { 
+        return regionId != null && regionId.startsWith(DominionGameState.REVEALED + player);
+    }
 }

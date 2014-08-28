@@ -4,21 +4,22 @@ $(function() {
     var uri = new String(window.location.href).replace("http", "ws");
     var queryStringIndex = uri.indexOf("?");
     if (queryStringIndex > 0) uri = uri.substring(0, queryStringIndex);    
-    var wsUri = uri + "/connect";    
+    var wsUri = uri + "/connect";
     
     var me = uri.substring(uri.lastIndexOf("/") + 1);
-    var range = 4, zoom = 3;
-    var pan_x = (2560 - window.innerWidth) / 180;
-    var pan_y = (1600 - window.innerHeight) / 110;
-    var gameState, myOptions;
-    var messages = ["", "", ""];
+    var range = 4, zoom = context.zoom;
+    var pan_x = context.pan_x; //(2560 - window.innerWidth) / 180;
+    var pan_y = context.pan_y; //(1600 - window.innerHeight) / 110;
+    var gameState, myOptions, prompt;
+    var messages = ["", "", "", ""];
+    var history = new Array();
     
     var table = document.getElementById('table');
     var tableCtx = table.getContext('2d');
     var canvas = document.getElementById('viewport');
     var ctx = canvas.getContext('2d');
 
-    displayMessage("Loading Resources...");
+    displayPrompt("Loading Resources...");
     window.images = new Array();    
     window.numLoaded = 0;
     window.images["table"] = new Image();
@@ -32,18 +33,16 @@ $(function() {
     
     var resources = context.resources;
     var imageCounter = 0;
-    jQuery.each(resources, function(resourceName, resource) {
-        if (resource.imageFront) {
-            window.loaded = false;
-            window.images[resourceName] = new Image();
-            window.images[resourceName].src = "/resources/images/" + resource.imageFront;            
-            window.images[resourceName].onload = checkLoaded;            
-        }     
+    jQuery.each(resources, function(resourceName, resourceImage) {
+        window.loaded = false;
+        window.images[resourceName] = new Image();
+        window.images[resourceName].src = "/resources/images/" + resourceImage;            
+        window.images[resourceName].onload = checkLoaded;
     });
     
     function openWebSocket () {
         redraw();
-        displayMessage("Connecting to Server...");
+        displayPrompt("Connecting to Server...");
         websocket = new WebSocket(wsUri);
         websocket.onopen = function(evt) { onOpen(evt) };
         websocket.onclose = function(evt) { onClose(evt) };
@@ -52,16 +51,19 @@ $(function() {
     }
 
     function onOpen (evt) {
-        displayMessage("Waiting for all players to connect...");
+        displayPrompt("Waiting for all players to connect...");
     }
 
     function onClose (evt) {
         redraw();
-        displayMessage("Disconnected");
+        displayPrompt("Disconnected");
     }
 
+    // TODO: put errors and prompts separate, keep track of history
     function onMessage (evt) {
-        if (evt.data.indexOf("MESSAGE: ") == 0)
+        if (evt.data.indexOf("ERROR: ") == 0)
+            displayPrompt(evt.data.substring("ERROR: ".length));
+        else if (evt.data.indexOf("MESSAGE: ") == 0)
             displayMessage(evt.data.substring("MESSAGE: ".length));
         else {
             gameState = jQuery.parseJSON(evt.data);
@@ -71,7 +73,7 @@ $(function() {
     }
 
     function onError (evt) {
-        displayMessage('Error: ' + evt.data);
+        displayPrompt('Error: ' + evt.data);
     }
 
     function doSend (message) {
@@ -107,12 +109,12 @@ $(function() {
     function displayImportantMessage () {
         myOptions = [];
         if (gameState.status == "WaitingForConnections")
-            displayMessage("Waiting for all players to connect...");
+        	displayPrompt("Waiting for all players to connect...");
         else if (gameState.status == "WaitingForReconnections") {
             if (gameState.disconnected.length == 1)
-                displayMessage("Waiting for " + gameState.playerNames[gameState.disconnected[0]] + " to reconnect...");
+            	displayPrompt("Waiting for " + gameState.playerNames[gameState.disconnected[0]] + " to reconnect...");
             else            
-                displayMessage("Waiting for all players to reconnect...");
+            	displayPrompt("Waiting for all players to reconnect...");
         }
         else if (gameState.status == "InProgress") {
             var foundMe = false;
@@ -122,16 +124,16 @@ $(function() {
                 if (action.player == me) {
                     foundMe = true;
                     myOptions = action.options;
-                    displayMessage(action.prompt);
+                    displayPrompt(action.prompt);
                 }
             }
             if (!foundMe) {
                 if (gameState.actions.length == 1) {
                     var action = gameState.actions[0];
-                    displayMessage("Waiting for " + gameState.playerNames[action.player]);
+                    displayPrompt("Waiting for " + gameState.playerNames[action.player]);
                 }
                 else
-                    displayMessage("Waiting for other players");
+                	displayPrompt("Waiting for other players");
             }            
         }
     }
@@ -143,13 +145,15 @@ $(function() {
         ctx.setTransform(0.2857 + (0.07143 * zoom), 0, 0, 0.2857 + (0.07143 * zoom), 0 - (50.5 * pan_x), 0 - (35 * pan_y));
         ctx.drawImage(table, 0, 0);
         ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.fillStyle = "gray";
         ctx.font = "12pt Helvetica";
-        ctx.fillText(messages[0], 10, 25);
-        ctx.fillText(messages[1], 10, 45);
-        ctx.fillText(messages[2], 10, 65);
+        ctx.fillStyle = "red";
+        ctx.fillText(prompt, 10, 25);
+        ctx.fillStyle = "gray";
+        ctx.fillText(messages[0], 10, 65);
+        ctx.fillText(messages[1], 10, 85);
+        ctx.fillText(messages[2], 10, 105);
         ctx.fillStyle = "black";
-        ctx.fillText(messages[3], 10, 85);
+        ctx.fillText(messages[3], 10, 125);
     };
 
     function displayMessage (message) {
@@ -161,7 +165,13 @@ $(function() {
             messages[2] = messages[3];
             messages[3] = message;
         }
+        history[history.length - 1] = message;
         redraw();
+    }
+    
+    function displayPrompt (promptStr) {
+    	prompt = promptStr;
+    	redraw();
     }
     
     $(document).keydown(function(e) {

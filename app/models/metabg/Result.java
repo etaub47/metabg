@@ -5,7 +5,8 @@ import com.google.common.base.Optional;
 public class Result
 {
     public enum ResultType { DO_NOTHING, STATE_CHANGE, ERROR, GAME_OVER }
-    public static final String PREFIX = "MESSAGE: ";
+    public static final String MESSAGE_PREFIX = "MESSAGE: ";
+    public static final String ERROR_PREFIX = "ERROR: ";
     
     private final ResultType type;
     private final Optional<String> message;
@@ -17,7 +18,10 @@ public class Result
 
     public Result (ResultType type, String message) {
         this.type = type;
-        this.message = Optional.of(PREFIX + message);
+        if (type == ResultType.ERROR)
+            this.message = Optional.of(ERROR_PREFIX + message);
+        else
+            this.message = Optional.of(MESSAGE_PREFIX + message);
     }
 
     public ResultType getType () { return type; }

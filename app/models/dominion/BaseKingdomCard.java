@@ -1,6 +1,5 @@
 package models.dominion;
 
-import models.dominion.ActionFactory.PlayerAction;
 import models.dominion.DominionCard.CardType;
 import models.dominion.Effects.DrawCardsEffect.DrawCardsEffectType;
 import models.dominion.Effects.Effect.AffectsType;
@@ -28,7 +27,7 @@ public enum BaseKingdomCard implements IDominionCard
     Cellar(new DominionCard.Builder()
         .name("Cellar").resource("cellar").cost(2)
         .type(CardType.KingdomCard).type(CardType.ActionCard)
-        .effect(new Effects.TriggerActionEffect(AffectsType.CurrentPlayer, PlayerAction.CellarAction, new IPredicate() {
+        .effect(new Effects.TriggerActionEffect(AffectsType.CurrentPlayer, ActionType.CellarAction, new IPredicate() {
             @Override public boolean apply (Input data) {
                 return !data.getActivePlayerState().getHand().isEmpty();
             }            
@@ -40,14 +39,14 @@ public enum BaseKingdomCard implements IDominionCard
         .name("Chancellor").resource("chancellor").cost(3)
         .type(CardType.KingdomCard).type(CardType.ActionCard)
         .effect(new Effects.IncreaseCoinsEffect(2))
-        .effect(new Effects.TriggerActionEffect(AffectsType.CurrentPlayer, PlayerAction.ChancellorAction))
+        .effect(new Effects.TriggerActionEffect(AffectsType.CurrentPlayer, ActionType.ChancellorAction))
         .build()
     ),
     
     Chapel(new DominionCard.Builder()
         .name("Chapel").resource("chapel").cost(2)
         .type(CardType.KingdomCard).type(CardType.ActionCard)
-        .effect(new Effects.TriggerActionEffect(AffectsType.CurrentPlayer, PlayerAction.ChapelAction, new IPredicate() {
+        .effect(new Effects.TriggerActionEffect(AffectsType.CurrentPlayer, ActionType.ChapelAction, new IPredicate() {
             @Override public boolean apply (Input data) {
                 return !data.getActivePlayerState().getHand().isEmpty();
             }            
@@ -68,7 +67,7 @@ public enum BaseKingdomCard implements IDominionCard
         .name("Feast").resource("feast").cost(4)
         .type(CardType.KingdomCard).type(CardType.ActionCard)
         .effect(new Effects.TrashCardEffect(TrashCardEffectType.PlayedCard))
-        .effect(new Effects.TriggerActionEffect(AffectsType.CurrentPlayer, PlayerAction.GainCardAction, 5))
+        .effect(new Effects.TriggerActionEffect(AffectsType.CurrentPlayer, ActionType.GainCardAction, 5))
         .build()
     ),
     
@@ -121,7 +120,7 @@ public enum BaseKingdomCard implements IDominionCard
         .name("Militia").resource("militia").cost(4)
         .type(CardType.KingdomCard).type(CardType.ActionCard).type(CardType.AttackCard)
         .effect(new Effects.IncreaseCoinsEffect(2))
-        .effect(new Effects.TriggerActionEffect(AffectsType.OtherPlayers, PlayerAction.MilitiaAction, new IPredicate() {
+        .effect(new Effects.TriggerActionEffect(AffectsType.OtherPlayers, ActionType.MilitiaAction, new IPredicate() {
             @Override public boolean apply (Input data) {
                 return data.getActivePlayerState().getHand().size() > 3;
             }            
@@ -132,7 +131,7 @@ public enum BaseKingdomCard implements IDominionCard
     Mine(new DominionCard.Builder()
         .name("Mine").resource("mine").cost(5)
         .type(CardType.KingdomCard).type(CardType.ActionCard)
-        .effect(new Effects.TriggerActionEffect(AffectsType.CurrentPlayer, PlayerAction.MineTrashAction, new IPredicate() {
+        .effect(new Effects.TriggerActionEffect(AffectsType.CurrentPlayer, ActionType.MineTrashAction, new IPredicate() {
             @Override public boolean apply (Input data) {
                 for (IDominionCard card : data.getActivePlayerState().getHand())
                     if (card.isTreasureCard()) return true;
@@ -162,7 +161,7 @@ public enum BaseKingdomCard implements IDominionCard
     Remodel(new DominionCard.Builder()
         .name("Remodel").resource("remodel").cost(4)
         .type(CardType.KingdomCard).type(CardType.ActionCard)
-        .effect(new Effects.TriggerActionEffect(AffectsType.CurrentPlayer, PlayerAction.RemodelAction))
+        .effect(new Effects.TriggerActionEffect(AffectsType.CurrentPlayer, ActionType.RemodelAction))
         .build()
     ),
     
@@ -179,7 +178,7 @@ public enum BaseKingdomCard implements IDominionCard
         .effect(new Effects.DrawCardsEffect(AffectsType.CurrentPlayer, DrawCardsEffectType.Standard, 1))
         .effect(new Effects.IncreaseActionsEffect(1))
         .effect(new Effects.RevealCardsEffect(AffectsType.AllPlayers, 1))
-        .effect(new Effects.TriggerActionEffect(AffectsType.CurrentPlayer, PlayerAction.SpyAction))
+        .effect(new Effects.TriggerActionEffect(AffectsType.CurrentPlayer, ActionType.SpyAction))
         .build()
     ),
     
@@ -214,7 +213,7 @@ public enum BaseKingdomCard implements IDominionCard
     Workshop(new DominionCard.Builder()
         .name("Workshop").resource("workshop").cost(3)
         .type(CardType.KingdomCard).type(CardType.ActionCard)
-        .effect(new Effects.TriggerActionEffect(AffectsType.CurrentPlayer, PlayerAction.GainCardAction, 4))
+        .effect(new Effects.TriggerActionEffect(AffectsType.CurrentPlayer, ActionType.GainCardAction, 4))
         .build()
     );
 

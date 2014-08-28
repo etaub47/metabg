@@ -1,6 +1,6 @@
 package models.metabg;
 
-import java.util.List;
+import java.util.Collection;
 import models.metabg.IGameModeFactory.IGameMode;
 
 public interface IGameConfig
@@ -9,10 +9,13 @@ public interface IGameConfig
     public int getMinPlayers ();
     public int getMaxPlayers ();
     public int getNumLayers ();
+    public int getInitialZoom ();
+    public int getInitialX ();
+    public int getInitialY ();
     
-    public void init (List<Resource> resources);    
-    public Table createTestTable ();
+    public void initResources (Collection<Resource> resources);
+    public Table createTestTable (Game game);
     public IGameModeFactory createGameModeFactory ();    
     public IGameLogic createGameLogic (int numPlayers);
-    public GameState createGameState (int numPlayers, IGameMode gameMode);
+    public GameState createGameState (Game game, int numPlayers, IGameMode gameMode);
 }

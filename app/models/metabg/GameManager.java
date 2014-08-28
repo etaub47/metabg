@@ -19,7 +19,7 @@ public class GameManager
         game.init();
         catalog.put(game.getName(), game);
         tables.put(game.getName(), new LinkedHashMap<String, Table>());
-        Table testTable = game.getConfig().createTestTable();
+        Table testTable = game.getConfig().createTestTable(game);
         if (testTable != null)
             addTable(game.getName(), testTable);
     }
