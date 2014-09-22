@@ -23,7 +23,7 @@ $(function() {
     window.images = new Array();    
     window.numLoaded = 0;
     window.images["table"] = new Image();
-    window.images["table"].src = "/resources/images/table.png";
+    window.images["table"].src = "/resources/images/table.jpg";
     
     function checkLoaded () {
         window.numLoaded++;
