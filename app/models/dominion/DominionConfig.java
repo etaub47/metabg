@@ -16,13 +16,13 @@ public class DominionConfig implements IGameConfig
     public static IGameConfig getInstance () { return instance; }
     protected DominionConfig () { }
     
-    @Override public String getName () { return"Dominion"; }
+    @Override public String getName () { return "Dominion"; }
     @Override public int getMinPlayers () { return 2; }
     @Override public int getMaxPlayers () { return 4; }
     @Override public int getNumLayers () { return 2; }
-    @Override public int getInitialZoom () { return 1; }
-    @Override public int getInitialX () { return 2; }
-    @Override public int getInitialY () { return 0; }    
+    @Override public int getInitialZoom () { return 0; }
+    @Override public int getInitialX () { return 0; }
+    @Override public int getInitialY () { return 0; }
     
     @Override
     public void initResources (Collection<Resource> resources) {
@@ -74,6 +74,8 @@ public class DominionConfig implements IGameConfig
     }
     
     @Override public GameState createGameState (Game game, int numPlayers, IGameMode mode) { 
-        return new DominionGameState(game, numPlayers, getNumLayers(), mode); 
+        DominionGameState gameState = new DominionGameState(game, numPlayers, getNumLayers(), mode); 
+        gameState.init();
+        return gameState;
     }
 }

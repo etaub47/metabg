@@ -69,6 +69,16 @@ public enum ActionType implements IActionType
         }        
     },
     
+    LibraryAction {
+        @Override public Action createAction (GameState state, int playerNum) {
+            return new Action.Builder().player(playerNum)
+                .prompt("Press 1 to keep this action card, or press 2 to set it aside.")
+                .option(EventType.LIBRARY_KEEP_CARD, Option.Category.NumberPress, 1)
+                .option(EventType.LIBRARY_SET_ASIDE_CARD, Option.Category.NumberPress, 2)
+                .build();
+        }
+    },
+    
     MilitiaAction {
         @Override public Action createAction (GameState state, int playerNum) {
             return new Action.Builder().player(playerNum)

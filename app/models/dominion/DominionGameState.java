@@ -27,6 +27,10 @@ public class DominionGameState extends GameState
     public static final String HAND = "Hand_";
     public static final String REVEALED = "Revealed_";
     
+    public static enum GamePhase { ActionPhase, BuyPhase, CleanupPhase }
+    
+    private final IGameMode mode;
+    
     private List<CardStack<IDominionCard>> kingdomCardSupply = new ArrayList<>(10);
     private List<CardStack<IDominionCard>> treasureCardSupply = new ArrayList<>(3);
     private List<CardStack<IDominionCard>> victoryCardSupply = new ArrayList<>(4);
@@ -36,7 +40,8 @@ public class DominionGameState extends GameState
     
     private List<IDominionCard> playedCards = new ArrayList<>();
     private CardStack<IDominionCard> setAsideCards = new CardStack<>(Type.Pile);
-    
+        
+    private GamePhase currentPhase;    
     private int currentPlayer; // which player is taking their turn now
     private int selectedPlayer; // which player are we talking about now
     
@@ -48,13 +53,16 @@ public class DominionGameState extends GameState
     private int numBuys = 0;
     private int numCoins = 0;
 
-    public DominionGameState (Game game, int numPlayers, int numLayers, IGameMode mode) 
-    {
+    public DominionGameState (Game game, int numPlayers, int numLayers, IGameMode mode) {
         super(game, numPlayers, numLayers);
-        
+        this.mode = mode;
+    }
+    
+    public void init ()
+    {        
         GameModeFactory gameModeFactory = GameModeFactory.getInstance();        
         Collection<? extends IDominionCard> cardSet = gameModeFactory.getCardSet((GameMode)mode);
-        int numVictoryCards = ((numPlayers == 2) ? 8 : 12);
+        int numVictoryCards = ((getNumPlayers() == 2) ? 8 : 12);
         
         // set up kingdom card supply piles
         for (IDominionCard card : cardSet) {
@@ -81,25 +89,38 @@ public class DominionGameState extends GameState
             victoryCardSupply.add(supplyPile);
         }
         
-        // set up players
-        currentPlayer = Utils.getRandomInt(numPlayers);        
-        for (int p = 0; p < numPlayers; p++)
+        // set up players, initial phase, and user interface
+        currentPlayer = Utils.getRandomInt(getNumPlayers());        
+        for (int p = 0; p < getNumPlayers(); p++)
             playerData.add(new PlayerState());
+        buyPhase();
         updateUserInterface();
-        
-        // set up initial action
-        addAction(ActionType.BuyAction, currentPlayer);   
     }
 
     public List<CardStack<IDominionCard>> getKingdomCardSupply () { return kingdomCardSupply; }
     public List<CardStack<IDominionCard>> getTreasureCardSupply () { return treasureCardSupply; }
     public List<CardStack<IDominionCard>> getVictoryCardSupply () { return victoryCardSupply; }
     public CardStack<IDominionCard> getTrashPile () { return trashPile; }
+    public CardStack<IDominionCard> getSupplyFromCard (IDominionCard card) {
+        for (CardStack<IDominionCard> supplyPile : kingdomCardSupply)
+            if (!supplyPile.isEmpty() && supplyPile.peekTopCard().equals(card))
+                return supplyPile;
+        for (CardStack<IDominionCard> supplyPile : treasureCardSupply)
+            if (!supplyPile.isEmpty() && supplyPile.peekTopCard().equals(card))
+                return supplyPile;
+        for (CardStack<IDominionCard> supplyPile : victoryCardSupply)
+            if (!supplyPile.isEmpty() && supplyPile.peekTopCard().equals(card))
+                return supplyPile;
+        return null;
+    }
     
     public PlayerState getPlayerData (int playerNum) { return playerData.get(playerNum); }
     
     public List<IDominionCard> getPlayedCards () { return playedCards; }
     public CardStack<IDominionCard> getSetAsideCards () { return setAsideCards; }
+    
+    public GamePhase getCurrentPhase () { return currentPhase; }
+    public void setCurrentPhase (GamePhase currentPhase) { this.currentPhase = currentPhase; }
     
     public int getCurrentPlayer () { return currentPlayer; }
     public PlayerState getCurrentPlayerData () { return playerData.get(currentPlayer); }
@@ -115,10 +136,19 @@ public class DominionGameState extends GameState
     public int getCurrentValue () { return currentValue; }
     public void setCurrentValue (int currentValue) { this.currentValue = currentValue; }
     
-    public int getNumThroneRooms () { return numThroneRooms; }    
+    public int getNumThroneRooms () { return numThroneRooms; } 
+    
     public int getNumActions () { return numActions; } 
+    public void incrementActions (int amount) { numActions += amount; }
+    public void decrementActions (int amount) { numActions -= amount; }
+
     public int getNumBuys () { return numBuys; }
-    public int getNumCoins () { return numCoins; }
+    public void incrementBuys (int amount) { numBuys += amount; }
+    public void decrementBuys (int amount) { numBuys -= amount; }
+
+    public int getNumCoins () { return numCoins; }    
+    public void incrementCoins (int amount) { numCoins += amount; }
+    public void decrementCoins (int amount) { numCoins -= amount; }
     
     public CardStack<IDominionCard> getSupplyPileByRegionId (String regionId) {
         if (regionId.startsWith(KINGDOM)) 
@@ -130,20 +160,58 @@ public class DominionGameState extends GameState
         else return null;
     }
     
+    public void actionPhase () {
+        setCurrentPhase(GamePhase.ActionPhase);                    
+        addAction(ActionType.SelectAction, currentPlayer);        
+    }
+    
+    public void buyPhase () {
+        setCurrentPhase(GamePhase.BuyPhase);
+        addAction(ActionType.BuyAction, currentPlayer);
+        for (IDominionCard card : getCurrentPlayerData().getHand())
+            if (card.isTreasureCard())
+                numCoins += card.getCoins(this);        
+    }
+    
+    public void cleanupPhase () {
+        setCurrentPhase(GamePhase.CleanupPhase);
+        PlayerState currentPlayerData = getCurrentPlayerData();
+        currentPlayerData.getDiscardPile().addToTop(playedCards);
+        playedCards.clear();
+        currentPlayerData.discardHand();
+        currentPlayerData.drawCardsIntoHand(5);
+    }
+    
     public void nextPlayerTurn () {
-        // TODO
+        currentPhase = GamePhase.ActionPhase;         
+        currentPlayer++;
+        if (currentPlayer == getNumPlayers())
+            currentPlayer = 0;        
         currentAction = null;
         numThroneRooms = 0;
-        numActions = 0;
-        numBuys = 0;
+        numActions = 1;
+        numBuys = 1;
         numCoins = 0;        
     }
     
-    private void updateUserInterface () 
+    public int countEmptySupplyPiles () {
+        int counter = 0;
+        for (CardStack<IDominionCard> pile : kingdomCardSupply)
+            if (pile.isEmpty()) counter++;
+        for (CardStack<IDominionCard> pile : victoryCardSupply)
+            if (pile.isEmpty()) counter++;
+        return counter;        
+    }
+    
+    public boolean isGameOver () {
+        return victoryCardSupply.get(2).isEmpty() || countEmptySupplyPiles() >= 3;
+    }
+    
+    public void updateUserInterface () 
     {
         Layer layer = getUILayer(CARD_LAYER);
         int startX = SpriteUtils.centerSpriteOnTableX(2000);
-        int startY = 50, s = 0, p = 0, c = 0, handSize;
+        int startY = 75, s = 0, p = 0, c = 0, handSize;
         int numPlayers = playerData.size();
         
         // supply piles
@@ -179,10 +247,14 @@ public class DominionGameState extends GameState
             startY += 320; c = 0;
             for (IDominionCard card : player.getHand())
                 layer.addSprite(new Sprite.SpriteBuilder(HAND + p + "_" + c, getResource(card.getResourceKey()), 
-                    startX + ((800 / handSize - 1) * c), startY, c++).tooltip(card.getName()).visibleToPlayer(p++).build()); 
+                    startX + ((800 / handSize - 1) * c), startY, c++).tooltip(card.getName()).visibleToPlayer(p).build());
+            p++;
         }
         
         // played cards
+        // TODO
+        
+        // actions/buys/coins available
         // TODO
     }
     
@@ -226,12 +298,12 @@ public class DominionGameState extends GameState
     
     private int getPlayerStartY (int numPlayers, int playerNum) {
         switch (playerNum) {
-            case 0: return 1000;
-            case 1: return 1000;
-            case 2: return (numPlayers == 3 || numPlayers == 6) ? 1000 : 1320;
-            case 3: return 1320;
-            case 4: return 1320;
-            case 5: return 1320;
+            case 0: return 1025;
+            case 1: return 1025;
+            case 2: return (numPlayers == 3 || numPlayers == 6) ? 1025 : 1665;
+            case 3: return 1665;
+            case 4: return 1665;
+            case 5: return 1665;
             default: return 0;
         }
     }   

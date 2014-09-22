@@ -46,6 +46,10 @@ public class GameState
     public Layer getUILayer (int layer) { 
         return userInterface.getLayer(layer); 
     }
+    
+    public boolean hasActions () {
+        return !actions.isEmpty();
+    }
 
     public Action getActionByPlayerNum (int playerNum) {
         return actions.get(playerNum);

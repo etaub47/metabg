@@ -15,16 +15,16 @@ public interface IDominionCard extends ICard
     public boolean isCurseCard ();
     
     // only applicable for action cards
-    public void play (Input data);
-    public boolean canUndo (Input data);
-    public void undo (Input data);
+    public void play (DominionGameState state);
+    public boolean canUndo (DominionGameState state);
+    public void undo (DominionGameState state);
 
     // only applicable for treasure card
-    public int getCoins (Input data);
+    public int getCoins (DominionGameState state);
 
     // only applicable for victory card
-    public int getPoints (Input data);
+    public int getPoints (DominionGameState state);
     
     // only applicable for reaction cards
-    public boolean react (Input data);
+    public boolean react (DominionGameState state);
 }

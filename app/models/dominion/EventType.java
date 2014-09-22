@@ -45,8 +45,8 @@ public enum EventType implements IEventType
     CHANCELLOR_DECLINE,             // 2, not undoable
     CHAPEL_TRASH_CARD,              // card from hand, undoable
     GAIN_CARD,                      // supply pile, undoable
-    LIBRARY_SET_ASIDE_CARD,         // 1, not undoable
-    LIBRARY_KEEP_CARD,              // 2, not undoable
+    LIBRARY_KEEP_CARD,              // 1, not undoable
+    LIBRARY_SET_ASIDE_CARD,         // 2, not undoable
     MILITIA_DISCARD_CARD,           // card from hand, not undoable
     MINE_TRASH_CARD,                // card from hand, undoable
     MINE_GAIN_CARD,                 // supply pile, undoable

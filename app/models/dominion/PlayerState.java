@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import models.metabg.CardStack;
 import models.metabg.CardStack.Type;
+import utils.CardUtils;
 
 public class PlayerState
 {
@@ -20,6 +21,7 @@ public class PlayerState
             deck.addToBottom(NonKingdomCard.Estate);
         deck.shuffle();
         drawCardsIntoHand(5);
+        CardUtils.sortCards(hand);
     }
     
     public CardStack<IDominionCard> getDeck () { return deck; }
@@ -36,15 +38,20 @@ public class PlayerState
         return cards;
     }
     
-    public int countPoints (Input data) {
+    public int countPoints (DominionGameState state) {
         int points = 0;
         for (IDominionCard card : getAllCards())
-            points = card.getPoints(data);
+            points = card.getPoints(state);
         return points;
     }
     
     public void drawCardsIntoHand (int numCards) {
         hand.addAll(drawCards(numCards));
+    }
+    
+    public void discardHand () {
+        discardPile.addToTop(hand);
+        hand.clear();
     }
     
     public IDominionCard getCardByRegionId (String regionId) {
@@ -59,18 +66,24 @@ public class PlayerState
         revealedCards.addAll(drawCards(numCards));
     }
     
-    private List<IDominionCard> drawCards (int numCards) {
+    public List<IDominionCard> drawCards (int numCards) {
         List<IDominionCard> drawnCards = new ArrayList<>(numCards);
         while (drawnCards.size() < numCards) {
-            if (deck.isEmpty()) {
-                if (discardPile.isEmpty()) 
-                    break;
-                deck = discardPile;
-                discardPile = new CardStack<>(Type.Pile);
-                deck.shuffle();                
-            }            
-            drawnCards.add(deck.drawFromTop());
+            IDominionCard card = drawCard();
+            if (card == null)
+                break;
+            drawnCards.add(card);
         }
         return drawnCards;
+    }
+    
+    public IDominionCard drawCard () {
+        if (deck.isEmpty()) {
+            if (discardPile.isEmpty()) 
+                return null;
+            deck.addAnywhere(discardPile);
+            deck.shuffle();                
+        }
+        return deck.drawFromTop();        
     }
 }

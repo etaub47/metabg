@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import models.dominion.Interfaces.IEffect;
 import models.dominion.Interfaces.IPredicate;
+import models.metabg.CardStack;
 import com.google.common.collect.Lists;
 
 public class Effects
@@ -13,37 +14,28 @@ public class Effects
     {            
         public enum AffectsType { CurrentPlayer, OtherPlayers, AllPlayers }
 
-        private final AffectsType affects; // which player(s) is affected; defaults to current player
-        private final IPredicate check; // check must be true or effect does not happen; optional
+        protected AffectsType affects; // which player(s) is affected; defaults to current player
+        protected IPredicate check; // check must be true or effect does not happen; optional
         
         protected Effect () { this.affects = AffectsType.CurrentPlayer; this.check = null; }
         protected Effect (AffectsType affects) { this.affects = affects; this.check = null; }
         protected Effect (IPredicate check) { this.affects = AffectsType.CurrentPlayer; this.check = check; }
         protected Effect (AffectsType affects, IPredicate check) { this.affects = affects; this.check = check; }
 
-        @Override public boolean check (Input data) { 
-            return (check == null) ? true : check.apply(data); 
-        }
+        @Override public boolean check (DominionGameState state) { return (check == null) ? true : check.apply(state); }
+        @Override public boolean canUndo () { return true; }
 
         @Override 
-        public boolean canUndo () { 
-            return true; 
-        }
-
-        public List<Input> crateInputStates (DominionGameState state) {
+        public List<Integer> getSelectedPlayers (DominionGameState state) {
             if (affects == AffectsType.CurrentPlayer)
-                return Lists.newArrayList(new Input(state, state.getCurrentPlayer()));
+                return Lists.newArrayList(state.getCurrentPlayer());
             else {            
-                List<Input> inputStates = new ArrayList<>();
+                List<Integer> selectedPlayers = new ArrayList<>();
                 for (int p = 0; p < state.getNumPlayers(); p++)
                     if (p != state.getCurrentPlayer() || affects == AffectsType.AllPlayers)
-                        inputStates.add(new Input(state, p));
-                return inputStates;
+                        selectedPlayers.add(p);
+                return selectedPlayers;
             }
-        }
-        
-        protected boolean affectsCurrentPlayer () {
-            return affects == AffectsType.CurrentPlayer;
         }
     }
     
@@ -55,12 +47,12 @@ public class Effects
         private PermanentEffect (IPredicate check) { super(check); }
         
         @Override public boolean canUndo () { return false; }
-        @Override public void undo (Input data) { }        
+        @Override public void undo (DominionGameState state) { }        
     }
     
     public static class DrawCardsEffect extends PermanentEffect implements IEffect
     {
-        public enum DrawCardsEffectType { Standard, UntilTwoCoins, PauseAfterAction }
+        public enum DrawCardsEffectType { Standard, Adventurer, Library }
 
         private final DrawCardsEffectType type;
         private final int numCards;
@@ -72,15 +64,42 @@ public class Effects
         }
         
         @Override 
-        public void execute (Input data) {
+        public void execute (DominionGameState state) 
+        {
+            PlayerState player = state.getSelectedPlayerData();
             switch (type) {
-                case Standard: data.getActivePlayerState().drawCardsIntoHand(numCards); break;
-                case UntilTwoCoins: /* TODO */ break;
-                case PauseAfterAction: /* TODO */ break;
+                case Standard: player.drawCardsIntoHand(numCards); break;
+                case Adventurer: drawAdventurer(state, player); break;
+                case Library: drawLibrary(state, player); break;
             }            
         }
         
-        // TODO: implicit check: at least one card in deck or discard pile
+        private void drawAdventurer (DominionGameState state, PlayerState player) {
+            IDominionCard card;
+            int numTreasureCardsFound = 0;
+            while (numTreasureCardsFound < 2) {
+                card = player.drawCard();
+                if (card == null) 
+                    break;
+                player.getHand().add(card);
+                if (card.isTreasureCard())
+                    numTreasureCardsFound++;
+            }
+        }
+        
+        private void drawLibrary (DominionGameState state, PlayerState player) {
+            IDominionCard card;
+            while (player.getHand().size() < 7) {
+                card = player.drawCard();
+                if (card == null) 
+                    break;
+                player.getHand().add(card);
+                if (card.isActionCard()) {
+                    state.addAction(ActionType.LibraryAction, state.getSelectedPlayer());
+                    break;
+                }
+            }            
+        }        
     }
 
     public static class RevealCardsEffect extends PermanentEffect implements IEffect
@@ -93,11 +112,9 @@ public class Effects
         }
         
         @Override 
-        public void execute (Input data) {
-            data.getActivePlayerState().revealCards(numCards);
+        public void execute (DominionGameState state) {
+            state.getSelectedPlayerData().revealCards(numCards);
         }
-        
-        // TODO: implicit check: at least one card in deck or discard pile
     }
     
     
@@ -115,13 +132,21 @@ public class Effects
         }
         
         @Override 
-        public void execute (Input data) {
-            // TODO: gain card from supply            
+        public void execute (DominionGameState state) {
+            CardStack<IDominionCard> supply = state.getSupplyFromCard(card);
+            if (supply != null) {
+                IDominionCard actualCard = supply.drawFromTop();
+                switch (type) {
+                    case Standard: state.getSelectedPlayerData().getDiscardPile().addToTop(actualCard); break;
+                    case TopOfDeck: state.getSelectedPlayerData().getDeck().addToTop(actualCard); break;
+                    default:
+                }
+            }
         }
 
         @Override 
-        public void undo (Input data) { 
-            // TODO: put card back in supply
+        public void undo (DominionGameState state) { 
+            // TODO: put card back in supply (use state.mode to determine pile in case empty)
         }
     }
     
@@ -134,13 +159,13 @@ public class Effects
         }
         
         @Override
-        public void execute (Input data) {
-            // TODO: increase actions            
+        public void execute (DominionGameState state) {
+            state.incrementActions(numActions);
         }
 
         @Override 
-        public void undo (Input data) { 
-            // TODO: decrease actions
+        public void undo (DominionGameState state) { 
+            state.decrementActions(numActions);
         }        
     }
     
@@ -153,13 +178,13 @@ public class Effects
         }
         
         @Override
-        public void execute (Input data) {
-            // TODO: increase coins            
+        public void execute (DominionGameState state) {
+            state.incrementCoins(numCoins);            
         }
 
         @Override 
-        public void undo (Input data) { 
-            // TODO: decrease coins
+        public void undo (DominionGameState state) { 
+            state.decrementCoins(numCoins);
         }        
     }
     
@@ -172,13 +197,13 @@ public class Effects
         }
         
         @Override
-        public void execute (Input data) {
-            // TODO: increase buys            
+        public void execute (DominionGameState state) {
+            state.incrementBuys(numBuys);            
         }
 
         @Override 
-        public void undo (Input data) { 
-            // TODO: decrease buys
+        public void undo (DominionGameState state) { 
+            state.decrementBuys(numBuys);
         }        
     }
     
@@ -212,17 +237,18 @@ public class Effects
         }
 
         @Override
-        public void execute (Input data) {
-            // TODO: trigger action            
+        public void execute (DominionGameState state) {
+            state.setCurrentValue(value);
+            state.addAction(actionType, state.getSelectedPlayer());
         }
         
         @Override 
         public boolean canUndo () { 
-            return affectsCurrentPlayer(); 
+            return affects == AffectsType.CurrentPlayer; 
         }
         
         @Override 
-        public void undo (Input data) { 
+        public void undo (DominionGameState state) { 
             // TODO: undo trigger action
         }                
     }
@@ -239,18 +265,34 @@ public class Effects
             this.card = null;
         }
         
-        public TrashCardEffect (IDominionCard card) {
+        public TrashCardEffect (final IDominionCard card) {
             this.type = TrashCardEffectType.SpecificCard;
             this.card = card;
+            this.check = new IPredicate() {
+                @Override public boolean apply (DominionGameState state) {
+                    return state.getSelectedPlayerData().getHand().contains(card);
+                }
+            };
         }
         
         @Override
-        public void execute (Input data) {
-            // TODO: trash this card            
+        public void execute (DominionGameState state) {
+            IDominionCard cardToTrash;
+            switch (type) {
+                case PlayedCard: 
+                    cardToTrash = state.getPlayedCards().get(state.getPlayedCards().size() - 1);
+                    state.getPlayedCards().remove(state.getPlayedCards().size() - 1);
+                    state.getTrashPile().addToTop(cardToTrash);
+                    break;
+                case SpecificCard:
+                    state.getSelectedPlayerData().getHand().remove(card);
+                    state.getTrashPile().addToTop(card);
+                    break;
+            }
         }
 
         @Override 
-        public void undo (Input data) { 
+        public void undo (DominionGameState state) { 
             // TODO: undo
         }        
     }
@@ -258,7 +300,7 @@ public class Effects
     public static class CancelAttackEffect extends PermanentEffect implements IEffect
     {
         @Override
-        public void execute (Input data) {
+        public void execute (DominionGameState state) {
             // TODO: cancel the attack on the active player
         }
     }
@@ -272,12 +314,14 @@ public class Effects
         }
         
         @Override
-        public void execute (Input data) {
-            // TODO: execute all effects until one fails predicate
+        public void execute (DominionGameState state) {
+            for (IEffect effect : effects)
+                if (effect.check(state))
+                    effect.execute(state);
         }
 
         @Override
-        public void undo (Input data) {
+        public void undo (DominionGameState state) {
             // TODO: undo all effects if possible (should this be permanent?)         
         }
     }    

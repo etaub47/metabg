@@ -49,23 +49,33 @@ public class DominionCard implements IDominionCard
     @Override public boolean isReactionCard () { return types.contains(CardType.ReactionCard); }
     @Override public boolean isCurseCard () { return types.contains(CardType.CurseCard); }
     
-    @Override public int getPoints (Input data) { return points.apply(data); }
-    @Override public int getCoins (Input data) { return coins.apply(data); }
+    @Override public int getPoints (DominionGameState state) { return points.apply(state); }
+    @Override public int getCoins (DominionGameState state) { return coins.apply(state); }
     
-    public void play (Input data) {
-        // TODO: play all effects
+    @Override
+    public void play (DominionGameState state) {
+        for (IEffect effect : effects) {
+            for (Integer selectedPlayer : effect.getSelectedPlayers(state)) {
+                state.setSelectedPlayer(selectedPlayer);
+                if (effect.check(state))
+                    effect.execute(state);
+            }
+        }            
     }
     
-    public boolean canUndo (Input data) {
+    @Override
+    public boolean canUndo (DominionGameState state) {
         // TODO: consider all effects
         return true;
     }
     
-    public void undo (Input data) {
+    @Override
+    public void undo (DominionGameState state) {
         // TODO: undo all effects
     }
 
-    public boolean react (Input data) {
+    @Override
+    public boolean react (DominionGameState state) {
         // TODO
         return true;
     }
@@ -96,7 +106,7 @@ public class DominionCard implements IDominionCard
         
         public Builder points (final int points) {
             this.points = new IFunction() {
-                @Override public Integer apply (Input data) {
+                @Override public Integer apply (DominionGameState state) {
                     return points;
                 }
             };
@@ -104,8 +114,8 @@ public class DominionCard implements IDominionCard
         }
 
         public Builder coins (final int coins) {
-            this.points = new IFunction() {
-                @Override public Integer apply (Input data) {
+            this.coins = new IFunction() {
+                @Override public Integer apply (DominionGameState state) {
                     return coins;
                 }
             };

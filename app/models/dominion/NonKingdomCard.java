@@ -29,10 +29,10 @@ public enum NonKingdomCard implements IDominionCard
     @Override public boolean isAttackCard () { return card.isAttackCard(); }
     @Override public boolean isReactionCard () { return card.isReactionCard(); }
     @Override public boolean isCurseCard () { return card.isCurseCard(); }
-    @Override public void play (Input data) { card.play(data); }
-    @Override public boolean canUndo (Input data) { return card.canUndo(data); }
-    @Override public void undo (Input data) { card.undo(data); }
-    @Override public int getCoins (Input data) { return card.getCoins(data); }
-    @Override public int getPoints (Input data) { return card.getPoints(data); }
-    @Override public boolean react (Input data) { return card.react(data); }    
+    @Override public void play (DominionGameState state) { card.play(state); }
+    @Override public boolean canUndo (DominionGameState state) { return card.canUndo(state); }
+    @Override public void undo (DominionGameState state) { card.undo(state); }
+    @Override public int getCoins (DominionGameState state) { return card.getCoins(state); }
+    @Override public int getPoints (DominionGameState state) { return card.getPoints(state); }
+    @Override public boolean react (DominionGameState state) { return card.react(state); }    
 }

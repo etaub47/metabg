@@ -13,7 +13,7 @@ public enum BaseKingdomCard implements IDominionCard
     Adventurer(new DominionCard.Builder()
         .name("Adventurer").resource("adventurer").cost(6)
         .type(CardType.KingdomCard).type(CardType.ActionCard)        
-        .effect(new Effects.DrawCardsEffect(AffectsType.CurrentPlayer, DrawCardsEffectType.UntilTwoCoins, 0))
+        .effect(new Effects.DrawCardsEffect(AffectsType.CurrentPlayer, DrawCardsEffectType.Adventurer, 0))
         .build()
     ),
     
@@ -28,8 +28,8 @@ public enum BaseKingdomCard implements IDominionCard
         .name("Cellar").resource("cellar").cost(2)
         .type(CardType.KingdomCard).type(CardType.ActionCard)
         .effect(new Effects.TriggerActionEffect(AffectsType.CurrentPlayer, ActionType.CellarAction, new IPredicate() {
-            @Override public boolean apply (Input data) {
-                return !data.getActivePlayerState().getHand().isEmpty();
+            @Override public boolean apply (DominionGameState state) {
+                return !state.getSelectedPlayerData().getHand().isEmpty();
             }            
          }))
         .build()
@@ -47,8 +47,8 @@ public enum BaseKingdomCard implements IDominionCard
         .name("Chapel").resource("chapel").cost(2)
         .type(CardType.KingdomCard).type(CardType.ActionCard)
         .effect(new Effects.TriggerActionEffect(AffectsType.CurrentPlayer, ActionType.ChapelAction, new IPredicate() {
-            @Override public boolean apply (Input data) {
-                return !data.getActivePlayerState().getHand().isEmpty();
+            @Override public boolean apply (DominionGameState state) {
+                return !state.getSelectedPlayerData().getHand().isEmpty();
             }            
          }))
         .build()
@@ -84,8 +84,8 @@ public enum BaseKingdomCard implements IDominionCard
         .name("Gardens").resource("gardens").cost(4)
         .type(CardType.KingdomCard).type(CardType.VictoryCard)
         .points(new IFunction() {
-            @Override public Integer apply (Input data) {
-                return data.getActivePlayerState().getAllCards().size() / 10;
+            @Override public Integer apply (DominionGameState state) {
+                return state.getSelectedPlayerData().getAllCards().size() / 10;
             }
          })
         .build()
@@ -102,7 +102,7 @@ public enum BaseKingdomCard implements IDominionCard
     Library(new DominionCard.Builder()
         .name("Library").resource("library").cost(5)
         .type(CardType.KingdomCard).type(CardType.ActionCard)
-        .effect(new Effects.DrawCardsEffect(AffectsType.CurrentPlayer, DrawCardsEffectType.PauseAfterAction, 7))
+        .effect(new Effects.DrawCardsEffect(AffectsType.CurrentPlayer, DrawCardsEffectType.Library, 7))
         .build()        
     ),
     
@@ -121,8 +121,8 @@ public enum BaseKingdomCard implements IDominionCard
         .type(CardType.KingdomCard).type(CardType.ActionCard).type(CardType.AttackCard)
         .effect(new Effects.IncreaseCoinsEffect(2))
         .effect(new Effects.TriggerActionEffect(AffectsType.OtherPlayers, ActionType.MilitiaAction, new IPredicate() {
-            @Override public boolean apply (Input data) {
-                return data.getActivePlayerState().getHand().size() > 3;
+            @Override public boolean apply (DominionGameState state) {
+                return state.getSelectedPlayerData().getHand().size() > 3;
             }            
          }))
         .build()
@@ -132,8 +132,8 @@ public enum BaseKingdomCard implements IDominionCard
         .name("Mine").resource("mine").cost(5)
         .type(CardType.KingdomCard).type(CardType.ActionCard)
         .effect(new Effects.TriggerActionEffect(AffectsType.CurrentPlayer, ActionType.MineTrashAction, new IPredicate() {
-            @Override public boolean apply (Input data) {
-                for (IDominionCard card : data.getActivePlayerState().getHand())
+            @Override public boolean apply (DominionGameState state) {
+                for (IDominionCard card : state.getSelectedPlayerData().getHand())
                     if (card.isTreasureCard()) return true;
                 return false;
             }            
@@ -232,10 +232,10 @@ public enum BaseKingdomCard implements IDominionCard
     @Override public boolean isAttackCard () { return card.isAttackCard(); }
     @Override public boolean isReactionCard () { return card.isReactionCard(); }
     @Override public boolean isCurseCard () { return card.isCurseCard(); }
-    @Override public void play (Input data) { card.play(data); }
-    @Override public boolean canUndo (Input data) { return card.canUndo(data); }
-    @Override public void undo (Input data) { card.undo(data); }
-    @Override public int getCoins (Input data) { return card.getCoins(data); }
-    @Override public int getPoints (Input data) { return card.getPoints(data); }
-    @Override public boolean react (Input data) { return card.react(data); }
+    @Override public void play (DominionGameState state) { card.play(state); }
+    @Override public boolean canUndo (DominionGameState state) { return card.canUndo(state); }
+    @Override public void undo (DominionGameState state) { card.undo(state); }
+    @Override public int getCoins (DominionGameState state) { return card.getCoins(state); }
+    @Override public int getPoints (DominionGameState state) { return card.getPoints(state); }
+    @Override public boolean react (DominionGameState state) { return card.react(state); }
 }

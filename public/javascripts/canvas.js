@@ -146,7 +146,7 @@ $(function() {
         ctx.drawImage(table, 0, 0);
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.font = "12pt Helvetica";
-        ctx.fillStyle = "red";
+        ctx.fillStyle = "white";
         ctx.fillText(prompt, 10, 25);
         ctx.fillStyle = "gray";
         ctx.fillText(messages[0], 10, 65);

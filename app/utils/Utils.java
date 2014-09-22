@@ -28,7 +28,7 @@ public class Utils
     }
     
     /**
-     * Returns a random number between 1 and N, inclusive
+     * Returns a random number between 0 and N-1, inclusive
      * 
      * @param range the maximum integer to select
      * @return the random number
@@ -36,6 +36,6 @@ public class Utils
      * @since Aug 12, 2014
      */    
     public static int getRandomInt (int range) {
-        return random.nextInt(range) + 1;
+        return random.nextInt(range);
     }
 }

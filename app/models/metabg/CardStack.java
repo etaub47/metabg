@@ -35,6 +35,9 @@ public class CardStack<T extends ICard>
     public void addToBottom (T card) { this.cards.addLast(card); }
     public void addToBottom (Collection<T> cards) { for (T card : cards) addToBottom(card); }
     public void addToBottom (CardStack<T> stack) { addToBottom(stack.getCards()); stack.clear(); }
+    
+    public void addAnywhere (Collection<T> cards) { this.cards.addAll(cards); }
+    public void addAnywhere (CardStack<T> stack) { addAnywhere(stack.getCards()); stack.clear(); }
 
     public T drawFromTop () { return this.cards.removeFirst(); }
     public T drawFromBottom () { return this.cards.removeLast(); }
