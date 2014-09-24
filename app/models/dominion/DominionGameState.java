@@ -49,8 +49,8 @@ public class DominionGameState extends GameState
     private int currentValue = 0;
     
     private int numThroneRooms = 0;    
-    private int numActions = 0;
-    private int numBuys = 0;
+    private int numActions = 1;
+    private int numBuys = 1;
     private int numCoins = 0;
 
     public DominionGameState (Game game, int numPlayers, int numLayers, IGameMode mode) {
@@ -161,7 +161,7 @@ public class DominionGameState extends GameState
     }
     
     public void actionPhase () {
-        setCurrentPhase(GamePhase.ActionPhase);                    
+        setCurrentPhase(GamePhase.ActionPhase);
         addAction(ActionType.SelectAction, currentPlayer);        
     }
     
@@ -242,17 +242,20 @@ public class DominionGameState extends GameState
             c = 0;
             if (!player.getRevealedCards().isEmpty())
                 for (IDominionCard card : player.getRevealedCards())
-                    layer.addSprite(new Sprite.SpriteBuilder(REVEALED + p + "_" + c, getResource(card.getResourceKey()), 
+                    layer.addClickableSprite(new Sprite.SpriteBuilder(REVEALED + p + "_" + c, getResource(card.getResourceKey()), 
                         startX + 440 + (220 * c), startY, c++).tooltip(card.getName()).build());                
             startY += 320; c = 0;
             for (IDominionCard card : player.getHand())
-                layer.addSprite(new Sprite.SpriteBuilder(HAND + p + "_" + c, getResource(card.getResourceKey()), 
+                layer.addClickableSprite(new Sprite.SpriteBuilder(HAND + p + "_" + c, getResource(card.getResourceKey()), 
                     startX + ((800 / handSize - 1) * c), startY, c++).tooltip(card.getName()).visibleToPlayer(p).build());
             p++;
         }
         
         // played cards
-        // TODO
+        c = 0;
+        for (IDominionCard card : playedCards)
+            layer.addSprite(new Sprite.SpriteBuilder("Played_" + c, getResource(card.getResourceKey()), 
+                SpriteUtils.centerSpriteOnTableX(200 * playedCards.size()) + (200 * c++), 710, 0).tooltip(card.getName()).build());   
         
         // actions/buys/coins available
         // TODO

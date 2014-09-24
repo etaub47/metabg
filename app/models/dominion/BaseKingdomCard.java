@@ -133,9 +133,7 @@ public enum BaseKingdomCard implements IDominionCard
         .type(CardType.KingdomCard).type(CardType.ActionCard)
         .effect(new Effects.TriggerActionEffect(AffectsType.CurrentPlayer, ActionType.MineTrashAction, new IPredicate() {
             @Override public boolean apply (DominionGameState state) {
-                for (IDominionCard card : state.getSelectedPlayerData().getHand())
-                    if (card.isTreasureCard()) return true;
-                return false;
+                return state.getSelectedPlayerData().hasTreasureCard();
             }            
          }))
         .build()

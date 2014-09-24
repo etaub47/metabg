@@ -17,8 +17,8 @@ public class DominionLogic implements IGameLogic
         EventType eventType = (EventType) event.getType();
         
         switch (eventType) {
-            case PLAY_ACTION_CARD: playActionCard(gameState, event);
-            case BUY_CARD: return buyCard(gameState, event); 
+            case PLAY_ACTION_CARD: return playActionCard(gameState, event);
+            case BUY_CARD: return buyCard(gameState, event);
             default: throw new IllegalArgumentException("Invalid event type received: " + event);
         }
     }
@@ -72,7 +72,7 @@ public class DominionLogic implements IGameLogic
             switch (gameState.getCurrentPhase()) 
             {
                 case ActionPhase:
-                    if (gameState.getNumActions() == 0)
+                    if (gameState.getNumActions() == 0 || !gameState.getCurrentPlayerData().hasActionCard())
                         gameState.setCurrentPhase(GamePhase.BuyPhase);
                     else {
                         gameState.actionPhase();

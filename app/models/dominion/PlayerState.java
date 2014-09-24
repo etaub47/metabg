@@ -55,10 +55,10 @@ public class PlayerState
     }
     
     public IDominionCard getCardByRegionId (String regionId) {
-        if (regionId.startsWith(DominionGameState.HAND)) 
-            return hand.get(Integer.valueOf(regionId.substring(DominionGameState.HAND.length())));
+        if (regionId.startsWith(DominionGameState.HAND))
+            return hand.get(Integer.valueOf(regionId.substring(DominionGameState.HAND.length()).substring(2, 3)));
         else if (regionId.startsWith(DominionGameState.REVEALED)) 
-            return revealedCards.get(Integer.valueOf(regionId.substring(DominionGameState.REVEALED.length())));
+            return revealedCards.get(Integer.valueOf(regionId.substring(DominionGameState.REVEALED.length()).substring(2, 3)));
         else return null;
     }
     
@@ -85,5 +85,17 @@ public class PlayerState
             deck.shuffle();                
         }
         return deck.drawFromTop();        
+    }
+
+    public boolean hasActionCard () {
+        for (IDominionCard card : hand)
+            if (card.isActionCard()) return true;
+        return false;        
+    }
+    
+    public boolean hasTreasureCard () {
+        for (IDominionCard card : hand)
+            if (card.isTreasureCard()) return true;
+        return false;        
     }
 }

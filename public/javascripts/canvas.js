@@ -148,11 +148,11 @@ $(function() {
         ctx.font = "12pt Helvetica";
         ctx.fillStyle = "white";
         ctx.fillText(prompt, 10, 25);
-        ctx.fillStyle = "gray";
+        ctx.fillStyle = "black";
         ctx.fillText(messages[0], 10, 65);
         ctx.fillText(messages[1], 10, 85);
         ctx.fillText(messages[2], 10, 105);
-        ctx.fillStyle = "black";
+        ctx.fillStyle = "white";
         ctx.fillText(messages[3], 10, 125);
     };
 
