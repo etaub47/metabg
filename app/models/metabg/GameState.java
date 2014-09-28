@@ -67,6 +67,10 @@ public class GameState
         return game.getResource(name);
     }
     
+    protected String getPhase () {
+        return "";
+    }
+    
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     Status getStatus () { return status; }
@@ -78,6 +82,7 @@ public class GameState
         result.put("status", status.toString());
         result.put("playerNames", getPlayerNamesJson());
         result.put("disconnected", getDisconnectedPlayersJson());
+        result.put("phase", getPhase());
         return result;
     }
     

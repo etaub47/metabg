@@ -27,7 +27,7 @@ public class DominionGameState extends GameState
     public static final String HAND = "Hand_";
     public static final String REVEALED = "Revealed_";
     
-    public static enum GamePhase { ActionPhase, BuyPhase, CleanupPhase }
+    public static enum GamePhase { Action, Buy, Cleanup }
     
     private final IGameMode mode;
     
@@ -150,6 +150,17 @@ public class DominionGameState extends GameState
     public void incrementCoins (int amount) { numCoins += amount; }
     public void decrementCoins (int amount) { numCoins -= amount; }
     
+    @Override
+    protected String getPhase () {
+        String phase = currentPhase + " Phase: ";
+        switch (currentPhase) {
+            case Action: phase += numActions + " action(s), ";
+            case Buy: phase += numBuys + " buy(s), " + numCoins + " coin(s)";
+            case Cleanup:
+        }        
+        return phase;
+    }
+    
     public CardStack<IDominionCard> getSupplyPileByRegionId (String regionId) {
         if (regionId.startsWith(KINGDOM)) 
             return kingdomCardSupply.get(Integer.valueOf(regionId.substring(KINGDOM.length())));
@@ -161,12 +172,12 @@ public class DominionGameState extends GameState
     }
     
     public void actionPhase () {
-        setCurrentPhase(GamePhase.ActionPhase);
+        setCurrentPhase(GamePhase.Action);
         addAction(ActionType.SelectAction, currentPlayer);        
     }
     
     public void buyPhase () {
-        setCurrentPhase(GamePhase.BuyPhase);
+        setCurrentPhase(GamePhase.Buy);
         addAction(ActionType.BuyAction, currentPlayer);
         for (IDominionCard card : getCurrentPlayerData().getHand())
             if (card.isTreasureCard())
@@ -174,7 +185,7 @@ public class DominionGameState extends GameState
     }
     
     public void cleanupPhase () {
-        setCurrentPhase(GamePhase.CleanupPhase);
+        setCurrentPhase(GamePhase.Cleanup);
         PlayerState currentPlayerData = getCurrentPlayerData();
         currentPlayerData.getDiscardPile().addToTop(playedCards);
         playedCards.clear();
@@ -183,7 +194,7 @@ public class DominionGameState extends GameState
     }
     
     public void nextPlayerTurn () {
-        currentPhase = GamePhase.ActionPhase;         
+        currentPhase = GamePhase.Action;         
         currentPlayer++;
         if (currentPlayer == getNumPlayers())
             currentPlayer = 0;        

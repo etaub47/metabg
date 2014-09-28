@@ -71,23 +71,23 @@ public class DominionLogic implements IGameLogic
         while (true) {
             switch (gameState.getCurrentPhase()) 
             {
-                case ActionPhase:
+                case Action:
                     if (gameState.getNumActions() == 0 || !gameState.getCurrentPlayerData().hasActionCard())
-                        gameState.setCurrentPhase(GamePhase.BuyPhase);
+                        gameState.setCurrentPhase(GamePhase.Buy);
                     else {
                         gameState.actionPhase();
                         return;
                     }
 
-                case BuyPhase:
+                case Buy:
                     if (gameState.getNumBuys() == 0)
-                        gameState.setCurrentPhase(GamePhase.CleanupPhase);
+                        gameState.setCurrentPhase(GamePhase.Cleanup);
                     else {
                         gameState.buyPhase();                        
                         return;                    
                     }
 
-                case CleanupPhase:
+                case Cleanup:
                     gameState.cleanupPhase();
                     if (!gameState.isGameOver())
                         gameState.nextPlayerTurn();

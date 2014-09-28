@@ -73,6 +73,7 @@ public class CheckersLogic implements IGameLogic
                 return new Result(ResultType.GAME_OVER, event.getPlayerNum() == Checker.BLACK ? "Black wins!" : "Red wins!");
             
             // set up the next player's turn 
+            state.removeAllSelections();
             state.addAction(ActionType.SelectChecker, nextPlayerTurn);
         }
         else
@@ -121,6 +122,7 @@ public class CheckersLogic implements IGameLogic
             return new Result(ResultType.GAME_OVER, event.getPlayerNum() == Checker.BLACK ? "Black wins!" : "Red wins!");
 
         // set up the next player's turn
+        state.removeAllSelections();
         state.addAction(ActionType.SelectChecker, nextPlayerTurn);
 
         // update the players' state
@@ -129,9 +131,10 @@ public class CheckersLogic implements IGameLogic
     
     private Result undoChecker (CheckersGameState state, Event event) throws Exception
     {
-        // remove the existing highlighting 
+        // remove the existing selection and highlighting 
         String undoCheckerId = state.getFirstSelection().getEvent().getValue();
         state.getUILayer(CheckersGameState.CHECKERS_LAYER).getRegion(undoCheckerId).clearHighlightColor();
+        state.removeLastSelection();
         
         // prompt the player to select a different checker
         state.addAction(ActionType.SelectChecker, event.getPlayerNum());

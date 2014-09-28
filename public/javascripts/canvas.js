@@ -10,7 +10,7 @@ $(function() {
     var range = 4, zoom = context.zoom;
     var pan_x = context.pan_x; //(2560 - window.innerWidth) / 180;
     var pan_y = context.pan_y; //(1600 - window.innerHeight) / 110;
-    var gameState, myOptions, prompt;
+    var gameState, myOptions, prompt, phase;
     var messages = ["", "", "", ""];
     var history = new Array();
     
@@ -118,7 +118,8 @@ $(function() {
         }
         else if (gameState.status == "InProgress") {
             var foundMe = false;
-            var prompt = "";
+            prompt = "";
+            phase = gameState.phase;
             for (var a in gameState.actions) {
                 var action = gameState.actions[a];
                 if (action.player == me) {
@@ -148,12 +149,14 @@ $(function() {
         ctx.font = "12pt Helvetica";
         ctx.fillStyle = "white";
         ctx.fillText(prompt, 10, 25);
+        ctx.fillStyle = "yellow";
+        ctx.fillText(phase, 10, 45);
         ctx.fillStyle = "black";
-        ctx.fillText(messages[0], 10, 65);
-        ctx.fillText(messages[1], 10, 85);
-        ctx.fillText(messages[2], 10, 105);
+        ctx.fillText(messages[0], 10, 85);
+        ctx.fillText(messages[1], 10, 105);
+        ctx.fillText(messages[2], 10, 125);
         ctx.fillStyle = "white";
-        ctx.fillText(messages[3], 10, 125);
+        ctx.fillText(messages[3], 10, 145);
     };
 
     function displayMessage (message) {
