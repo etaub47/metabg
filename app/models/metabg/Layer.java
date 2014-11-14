@@ -34,6 +34,14 @@ public class Layer
         return null;
     }
     
+    public List<Sprite> getSpritesByPrefix (String idPrefix) {
+        List<Sprite> results = new ArrayList<>();
+        for (Sprite sprite : sprites)
+            if (sprite.getId().startsWith(idPrefix))
+                results.add(sprite);
+        return results;
+    }
+    
     public Region getRegion (String id) {
         for (Region region : regions)
             if (region.getId().equals(id))
@@ -58,6 +66,11 @@ public class Layer
                 iter.remove();
         }
         removeRegion(id);
+    }
+    
+    public void removeAllSprites () {
+        sprites.clear();
+        regions.clear();
     }
     
     public void removeRegion (String id) {

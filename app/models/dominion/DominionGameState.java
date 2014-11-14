@@ -2,6 +2,7 @@ package models.dominion;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import models.dominion.GameModeFactory.GameMode;
 import models.metabg.CardStack;
@@ -154,8 +155,8 @@ public class DominionGameState extends GameState
     protected String getPhase () {
         String phase = currentPhase + " Phase: ";
         switch (currentPhase) {
-            case Action: phase += numActions + " action(s), ";
-            case Buy: phase += numBuys + " buy(s), " + numCoins + " coin(s)";
+            case Action: phase += numActions + " action" + ((numActions > 1) ? "s" : ""); break;
+            case Buy: phase += numBuys + " buy" + ((numBuys > 1) ? "s, " : ", ") + numCoins + " coin" + ((numCoins > 1) ? "s" : ""); break;
             case Cleanup:
         }        
         return phase;
@@ -179,9 +180,15 @@ public class DominionGameState extends GameState
     public void buyPhase () {
         setCurrentPhase(GamePhase.Buy);
         addAction(ActionType.BuyAction, currentPlayer);
-        for (IDominionCard card : getCurrentPlayerData().getHand())
-            if (card.isTreasureCard())
-                numCoins += card.getCoins(this);        
+        Iterator<IDominionCard> cardIter = getCurrentPlayerData().getHand().iterator();
+        while (cardIter.hasNext()) {
+            IDominionCard card = cardIter.next();
+            if (card.isTreasureCard()) {
+                cardIter.remove();
+                getPlayedCards().add(card);
+                numCoins += card.getCoins(this);
+            }            
+        }
     }
     
     public void cleanupPhase () {
@@ -225,6 +232,9 @@ public class DominionGameState extends GameState
         int startY = 75, s = 0, p = 0, c = 0, handSize;
         int numPlayers = playerData.size();
         
+        // remove all sprites; we will regenerate everything from scratch in this method
+        layer.removeAllSprites();        
+        
         // supply piles
         for (CardStack<IDominionCard> supplyPile : kingdomCardSupply)
             layer.addClickableSprite(new Sprite.SpriteBuilder(KINGDOM + s, getResource(supplyPile.peekTopCard().getResourceKey()), 
@@ -267,9 +277,6 @@ public class DominionGameState extends GameState
         for (IDominionCard card : playedCards)
             layer.addSprite(new Sprite.SpriteBuilder("Played_" + c, getResource(card.getResourceKey()), 
                 SpriteUtils.centerSpriteOnTableX(200 * playedCards.size()) + (200 * c++), 710, 0).tooltip(card.getName()).build());   
-        
-        // actions/buys/coins available
-        // TODO
     }
     
     private int getPlayerStartX (int numPlayers, int playerNum) {
