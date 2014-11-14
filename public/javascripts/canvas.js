@@ -10,7 +10,7 @@ $(function() {
     var range = 4, zoom = context.zoom;
     var pan_x = context.pan_x; //(2560 - window.innerWidth) / 180;
     var pan_y = context.pan_y; //(1600 - window.innerHeight) / 110;
-    var gameState, myOptions, prompt, phase;
+    var gameState, myOptions, prompt, phase = "";
     var messages = ["", "", "", ""];
     var history = new Array();
     
@@ -59,7 +59,6 @@ $(function() {
         displayPrompt("Disconnected");
     }
 
-    // TODO: put errors and prompts separate, keep track of history
     function onMessage (evt) {
         if (evt.data.indexOf("ERROR: ") == 0)
             displayPrompt(evt.data.substring("ERROR: ".length));
@@ -143,6 +142,8 @@ $(function() {
     function redraw () {        
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.setTransform(0.2857 + (0.07143 * zoom), 0, 0, 0.2857 + (0.07143 * zoom), 0 - (50.5 * pan_x), 0 - (35 * pan_y));
         ctx.drawImage(table, 0, 0);
         ctx.setTransform(1, 0, 0, 1, 0, 0);
