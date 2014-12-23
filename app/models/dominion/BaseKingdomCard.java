@@ -173,16 +173,29 @@ public enum BaseKingdomCard implements IDominionCard
     Spy(new DominionCard.Builder()
         .name("Spy").resource("spy").cost(4)
         .type(CardType.KingdomCard).type(CardType.ActionCard).type(CardType.AttackCard)
-        .effect(new Effects.DrawCardsEffect(AffectsType.CurrentPlayer, DrawCardsEffectType.Standard, 1))
-        .effect(new Effects.IncreaseActionsEffect(1))
         .effect(new Effects.RevealCardsEffect(AffectsType.AllPlayers, 1))
         .effect(new Effects.TriggerActionEffect(AffectsType.CurrentPlayer, ActionType.SpyAction))
         .build()
     ),
     
-    Thief(new DominionCard.Builder().build()),
+    Thief(new DominionCard.Builder()
+        .name("Thief").resource("thief").cost(4)
+        .type(CardType.KingdomCard).type(CardType.ActionCard).type(CardType.AttackCard)
+        .effect(new Effects.RevealCardsEffect(AffectsType.OtherPlayers, 2))
+        .effect(new Effects.TriggerActionEffect(AffectsType.CurrentPlayer, ActionType.ThiefSelectAction))        
+        .build()
+    ),
     
-    ThroneRoom(new DominionCard.Builder().build()),
+    ThroneRoom(new DominionCard.Builder()
+        .name("Throne Room").resource("throneroom").cost(4)
+        .type(CardType.KingdomCard).type(CardType.ActionCard)
+        .effect(new Effects.TriggerActionEffect(AffectsType.CurrentPlayer, ActionType.ThroneRoomAction, new IPredicate() {
+            @Override public boolean apply (DominionGameState state) {
+                return state.getSelectedPlayerData().hasActionCard();
+            }            
+         }))
+        .build()
+    ),
     
     Village(new DominionCard.Builder()
         .name("Village").resource("village").cost(3)

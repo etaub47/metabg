@@ -120,9 +120,32 @@ public enum ActionType implements IActionType
         @Override public Action createAction (GameState state, int playerNum) {
             DominionGameState gameState = (DominionGameState) state; 
             return new Action.Builder().player(playerNum)
+                // TODO: I am not sure this logic is right regarding the active player and the selected player
                 .prompt("Press 1 to have " + gameState.getSelectedPlayerName() + " discard the revealed card, or press 2 to put it back.")
                 .option(EventType.SPY_DISCARD_CARD, Option.Category.NumberPress, 1)
                 .option(EventType.SPY_KEEP_CARD, Option.Category.NumberPress, 2)
+                .build();
+        }        
+    },
+    
+    ThiefSelectAction {
+        @Override public Action createAction (GameState state, int playerNum) {
+            DominionGameState gameState = (DominionGameState) state; 
+            return new Action.Builder().player(playerNum)
+                //.prompt("Press 1 to have " + gameState.getSelectedPlayerName() + " discard the revealed card, or press 2 to put it back.")
+                //.option(EventType.SPY_DISCARD_CARD, Option.Category.NumberPress, 1)
+                //.option(EventType.SPY_KEEP_CARD, Option.Category.NumberPress, 2)
+                .build();
+        }
+    },
+    
+    ThroneRoomAction {
+        @Override public Action createAction (GameState state, int playerNum) {
+            DominionGameState gameState = (DominionGameState) state; 
+            return new Action.Builder().player(playerNum)
+                //.prompt("Press 1 to have " + gameState.getSelectedPlayerName() + " discard the revealed card, or press 2 to put it back.")
+                //.option(EventType.SPY_DISCARD_CARD, Option.Category.NumberPress, 1)
+                //.option(EventType.SPY_KEEP_CARD, Option.Category.NumberPress, 2)
                 .build();
         }        
     };
